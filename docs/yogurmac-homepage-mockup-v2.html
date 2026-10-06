@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yogurmac Foods — Homepage Mockup v2 (Image-Heavy)</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,700;0,800;0,900;1,800&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#F2EDE4;
+  --dark:#1A1917;
+  --green:#1E4D09;
+  --gold:#D4850C;
+  --b:1.5px solid #1A1917;
+  --r:2px;
+}
+body{font-family:'Barlow',sans-serif;color:var(--dark);background:var(--cream)}
+.dots{
+  background-color:var(--cream);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Ccircle cx='9' cy='9' r='1' fill='%23C4BAA8'/%3E%3C/svg%3E");
+  background-size:18px 18px;
+  background-repeat:repeat;
+}
+
+/* ── NAV (unchanged) ── */
+.nav{border-bottom:var(--b);background:var(--cream)}
+.nav-top{display:flex;align-items:center;padding:9px 20px;gap:8px;border-bottom:1px solid rgba(26,25,23,0.15)}
+.nav-home{width:30px;height:30px;border:var(--b);border-radius:var(--r);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px}
+.nav-search{flex:1;border:none;border-bottom:1px solid #ccc;background:transparent;font-family:'Barlow',sans-serif;font-size:12.5px;padding:4px 8px;outline:none;color:var(--dark)}
+.nav-actions{display:flex;gap:6px}
+.nav-btn{padding:5px 12px;border:var(--b);border-radius:var(--r);background:transparent;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;color:var(--dark)}
+.nav-links{display:flex;justify-content:space-around;padding:10px 20px}
+.nav-links a{font-family:'Barlow Condensed',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dark);text-decoration:none}
+
+/* ── HERO ── */
+/* Layout unchanged: 1.15fr left text + 1fr right cards */
+/* Change: right cards are now full-bleed image cards, not colour-block cards */
+.hero{display:grid;grid-template-columns:1.15fr 1fr;border-bottom:var(--b);min-height:400px}
+.hero-text{padding:36px 28px;border-right:var(--b);display:flex;flex-direction:column;justify-content:space-between;gap:20px}
+.hero-h1{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:38px;line-height:1.04;letter-spacing:-0.5px;text-transform:uppercase;color:var(--dark)}
+.hero-sub{font-size:13px;color:#55504A;line-height:1.65;max-width:340px;margin-top:16px}
+.hero-cta{display:inline-block;border:var(--b);padding:9px 18px;border-radius:var(--r);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;color:var(--dark);text-decoration:none;align-self:flex-start}
+.hero-cards{display:grid;grid-template-rows:1fr 1fr}
+
+/* Full-bleed image card — replaces hcard-dark and hcard-gold */
+.hcard-img{position:relative;overflow:hidden;border-bottom:var(--b)}
+.hcard-img:last-child{border-bottom:none}
+
+/* Caption strip overlaid at the bottom of the image card */
+/* Dark overlay strip (used on product photography card) */
+.hcard-strip-dark{
+  position:absolute;bottom:0;left:0;right:0;
+  background:rgba(26,25,23,0.75);
+  backdrop-filter:blur(2px);
+  border-top:var(--b);
+  padding:10px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+/* Gold overlay strip (used on Ythirst stat card) */
+.hcard-strip-gold{
+  position:absolute;bottom:0;left:0;right:0;
+  background:rgba(212,133,12,0.90);
+  backdrop-filter:blur(2px);
+  border-top:var(--b);
+  padding:10px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.strip-label{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:0.3px;color:var(--cream)}
+.strip-stat-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:30px;line-height:1;color:var(--dark);letter-spacing:-0.5px}
+.strip-stat-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;color:#3D2500;letter-spacing:0.3px;line-height:1.3;margin-top:1px}
+
+/* ── IMAGE PLACEHOLDER BLOCKS ── */
+/* These are colour-block stand-ins for real photography.
+   In Next.js, replace with <Image /> components using object-fit: cover.
+   Each .img-ph fills 100% of its parent via absolute positioning or height:100%. */
+.img-ph{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-size:10.5px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;text-align:center;padding:12px;
+  line-height:1.5;
+}
+/* Hero cards */
+.ph-product   {background:#2C2B28;color:rgba(242,237,228,0.30)} /* dark — product hero shot */
+.ph-outreach  {background:#C09060;color:rgba(26,25,23,0.30)}    /* warm — Ythirst classroom */
+/* Product grid */
+.ph-yogurt    {background:#D4C5B2;color:rgba(26,25,23,0.30)}
+.ph-granola   {background:#C4A86A;color:rgba(26,25,23,0.30)}
+.ph-bar       {background:#A8765A;color:rgba(26,25,23,0.30)}
+/* Editorial strip */
+.ph-lifestyle {background:#B5C4A8;color:rgba(26,25,23,0.30)}    /* green-tinted — Lagos life */
+.ph-outreach2 {background:#3A6B1E;color:rgba(240,247,232,0.30)} /* deep green — school outreach */
+.ph-kitchen   {background:#C4956A;color:rgba(26,25,23,0.30)}    /* warm — production / making */
+
+/* ── BADGES ── */
+.badge{padding:3px 9px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;border:var(--b);border-radius:1px}
+.b-gray  {background:#DDD6C8;color:var(--dark)}
+.b-gold  {background:var(--gold);color:#3D2500}
+.b-dark  {background:var(--dark);color:var(--cream)}
+.b-cream {background:var(--cream);color:var(--dark)}
+/* b-green and b-sage removed — sharp lime green not used */
+
+/* ── PRODUCT GRID (Oatly card format) ── */
+/* Layout unchanged: 3-col grid */
+/* Change: image height 150→240px, description paragraph removed, image fills card top */
+.prod-grid{display:grid;grid-template-columns:repeat(3,1fr);border-top:var(--b)}
+.pcard{border-right:var(--b);border-bottom:var(--b);border-top:none;border-left:none;background:var(--cream)}
+.pcard:last-child{border-right:none}
+/* Image: 240px tall (up from 150px), fills card width, no padding */
+.pcard-img{height:240px;overflow:hidden;border-bottom:1px solid #C4BAA8}
+/* Minimal body: just name + price, no description paragraph */
+.pcard-body{padding:10px 12px 6px}
+.pcard-nm{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;text-transform:uppercase;letter-spacing:-0.3px;margin-bottom:3px}
+.pcard-pr{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:#666}
+.card-bar{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-top:var(--b);background:var(--cream)}
+.card-bar-title{font-family:'Barlow Condensed',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase}
+
+/* ── EDITORIAL IMAGE STRIP (NEW SECTION) ── */
+/* Inserted between product grid and Ythirst strip.
+   Tells the brand story visually before the Ythirst copy section.
+   3-col grid, each column uses a different Oatly-style card treatment. */
+.edit-strip{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:var(--b);border-bottom:var(--b)}
+.edit-col{border-right:var(--b)}
+.edit-col:last-child{border-right:none}
+
+/* Column 1: Dot tile — decorative, like Oatly's blank dot card within the grid.
+   Has minimum height to match the tallest column (340px). */
+.edit-dot-tile{min-height:340px;height:100%}
+
+/* Column 2: Single tall portrait card — lifestyle or brand image */
+.edit-card-tall{position:relative;overflow:hidden;height:340px}
+
+/* Column 3: Two stacked cards — each takes half the column height */
+.edit-col-stack{display:grid;grid-template-rows:1fr 1fr;height:340px}
+.edit-card-sm{position:relative;overflow:hidden}
+.edit-card-sm:first-child{border-bottom:var(--b)}
+
+/* Universal caption strip for editorial cards — positioned at image bottom */
+.edit-cap{
+  position:absolute;bottom:0;left:0;right:0;
+  border-top:var(--b);
+  padding:8px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.cap-dark   {background:rgba(26,25,23,0.80);backdrop-filter:blur(2px)}
+.cap-green  {background:rgba(30,77,9,0.88);backdrop-filter:blur(2px)}
+.cap-cream  {background:rgba(242,237,228,0.90);backdrop-filter:blur(2px)}
+.cap-text{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
+.ct-light{color:var(--cream)}
+.ct-dark {color:var(--dark)}
+.ct-sage {color:rgba(242,237,228,0.75)}
+
+/* ── YTHIRST STRIP ── */
+/* Accent colour is now muted cream — no sharp green (#8BC668) anywhere in this section */
+.ythirst{background:var(--green);border-top:var(--b);border-bottom:var(--b);padding:40px 28px}
+.yt-eye{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(242,237,228,0.60);margin-bottom:14px}
+.yt-h2{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;line-height:1.05;text-transform:uppercase;letter-spacing:-0.5px;color:#F0F7E8;margin-bottom:14px;max-width:500px}
+.yt-funding{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:rgba(242,237,228,0.10);border:1px solid rgba(242,237,228,0.30);color:rgba(242,237,228,0.75);padding:5px 12px;border-radius:var(--r);margin-bottom:22px}
+.yt-note{font-size:13px;color:rgba(242,237,228,0.65);line-height:1.65;max-width:480px;margin-bottom:26px}
+.yt-stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(255,255,255,0.18);padding-top:4px}
+.yt-stat{padding:18px 14px 4px;border-left:1px solid rgba(255,255,255,0.12)}
+.yt-stat:first-child{border-left:none;padding-left:0}
+.yt-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:42px;line-height:1;letter-spacing:-1px;color:#F0F7E8}
+.yt-lbl{font-size:12px;color:rgba(242,237,228,0.60);margin-top:5px}
+.yt-lnk{display:inline-block;margin-top:20px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12.5px;letter-spacing:0.5px;text-transform:uppercase;color:#F0F7E8;border-bottom:1.5px solid rgba(242,237,228,0.40);padding-bottom:2px;cursor:pointer}
+
+/* ── PARTNER CTA (unchanged) ── */
+.partner{background:var(--gold);border-bottom:var(--b);display:grid;grid-template-columns:1fr 1fr}
+.pt-l{padding:34px 28px;border-right:var(--b)}
+.pt-h2{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;line-height:1.05;text-transform:uppercase;letter-spacing:-0.5px;color:var(--dark);margin-bottom:10px}
+.pt-sub{font-size:13px;color:#3D2500;line-height:1.65}
+.pt-r{padding:28px;display:flex;flex-direction:column;gap:9px}
+.pt-tier{background:rgba(255,255,255,0.28);border:var(--b);border-radius:var(--r);padding:11px 15px;display:flex;align-items:center;justify-content:space-between}
+.pt-nm{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14.5px;text-transform:uppercase;letter-spacing:0.3px}
+.pt-ds{font-size:11px;color:#3D2500;margin-top:2px}
+.pt-amt{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;color:var(--dark)}
+.btn-pt{background:var(--dark);color:var(--cream);padding:11px 22px;border:var(--b);border-radius:var(--r);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;margin-top:4px;align-self:flex-start}
+
+/* ── SHOW MORE (unchanged) ── */
+.more-row{border-top:var(--b);padding:28px;display:flex;justify-content:center}
+.btn-more{background:var(--dark);color:var(--cream);padding:12px 30px;border-radius:30px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13.5px;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer}
+
+/* ── FOOTER (unchanged) ── */
+.footer{border-top:var(--b);background:var(--cream)}
+.ft-row{display:grid;grid-template-columns:1fr 1fr;border-bottom:var(--b)}
+.ft-cell{padding:13px 20px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dark);border-right:var(--b);cursor:pointer;display:flex;align-items:center;gap:6px}
+.ft-cell:last-child{border-right:none}
+.ft-row4{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:var(--b)}
+.ft-cell4{padding:11px 20px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--dark);border-right:var(--b);cursor:pointer}
+.ft-cell4:last-child{border-right:none}
+.ft-copy{text-align:center;padding:12px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:#888}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     WHAT CHANGED vs v1 (for Claude Code reference)
+     ═══════════════════════════════════════════════
+  1. HERO RIGHT CARDS
+     Was:  solid colour blocks (.hcard-dark, .hcard-gold) with copy inside
+     Now:  full-bleed image cards (.hcard-img) with translucent caption strip
+           overlaid at the bottom (position:absolute)
+
+  2. PRODUCT CARDS — pcard-img height
+     Was:  150px, centred placeholder text
+     Now:  240px, image fills full card width. Description paragraph (.pcard-ds)
+           removed — Oatly cards carry only name + price below the image
+
+  3. EDITORIAL IMAGE STRIP (NEW SECTION)
+     Inserted between product grid and Ythirst section.
+     3-column grid, each column a different card treatment:
+       Col 1 — dot tile (decorative empty tile, like Oatly's dot cards)
+       Col 2 — single tall portrait card (340px, brand lifestyle photo)
+       Col 3 — two stacked cards (170px each, Ythirst outreach + kitchen)
+     Caption strips use position:absolute overlaid at each card's bottom.
+
+  4. IMAGE PLACEHOLDERS
+     Every .img-ph block = one <Image /> (Next.js) with object-fit:cover.
+     Placeholder background colours communicate the intended photo mood.
+     Placeholder labels describe exactly what photography belongs there.
+
+  5. ALL OTHER SECTIONS UNCHANGED
+     Nav, Ythirst strip, Partner CTA, Show More, Footer — identical to v1.
+     Design tokens (cream, dark, green, gold, border, font) unchanged.
+════════════════════════════════════════════════ -->
+
+<nav class="nav">
+  <div class="nav-top">
+    <div class="nav-home">🏠</div>
+    <input class="nav-search" placeholder="Search products, stories, Ythirst…" />
+    <div class="nav-actions">
+      <button class="nav-btn">Partner with us</button>
+      <button class="nav-btn">🛍 Cart (0)</button>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a href="#">Products</a>
+    <a href="#">Our Story</a>
+    <a href="#">Ythirst Project</a>
+    <a href="#">Health &amp; Values</a>
+    <a href="#">Partner with us</a>
+  </div>
+</nav>
+
+
+<!-- ══════════════════════════════════════════
+     HERO
+     Left column: unchanged (dots bg + text)
+     Right column: two full-bleed image cards
+     ══════════════════════════════════════════ -->
+<div class="hero dots">
+
+  <!-- Left: text block — unchanged from v1 -->
+  <div class="hero-text">
+    <div>
+      <h1 class="hero-h1">We make premium Greek yogurt, granola &amp; energy bars right here in Nigeria.</h1>
+      <p class="hero-sub">Yogurmac Foods Limited is a faith-driven indigenous food brand crafting wholesome products made to order and delivered across all 20 Lagos local government areas.</p>
+    </div>
+    <a class="hero-cta" href="#">Shop products →</a>
+  </div>
+
+  <!-- Right: image cards replacing the old hcard-dark + hcard-gold -->
+  <div class="hero-cards">
+
+    <!-- Card 1 (was: dark card with "Made fresh. To your order." copy)
+         Now: full-bleed product photography + dark translucent caption strip -->
+    <div class="hcard-img">
+      <!-- REPLACE WITH: <Image src="..." alt="..." fill style={{objectFit:'cover'}} /> -->
+      <div class="img-ph ph-product">
+        [ Product hero photography ]<br>
+        Greek yogurt / granola / energy bars<br>
+        Styled shot on cream surface
+      </div>
+      <div class="hcard-strip-dark">
+        <span class="strip-label">Made fresh. To your order. Every time.</span>
+        <span class="badge b-gray">Products</span>
+      </div>
+    </div>
+
+    <!-- Card 2 (was: gold card with "900+" stat and label)
+         Now: Ythirst outreach photography + gold translucent caption strip with stat -->
+    <div class="hcard-img">
+      <!-- REPLACE WITH: <Image src="..." alt="..." fill style={{objectFit:'cover'}} /> -->
+      <div class="img-ph ph-outreach">
+        [ Ythirst outreach photography ]<br>
+        Children at Lagos public primary school<br>
+        Warm, documentary, authentic
+      </div>
+      <div class="hcard-strip-gold">
+        <div>
+          <div class="strip-stat-num">900+</div>
+          <div class="strip-stat-lbl">Children supported<br>through the Ythirst Project</div>
+        </div>
+        <span class="badge b-dark">Ythirst</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     PRODUCT GRID
+     Layout unchanged: 3-col grid
+     Changes: image height 150→240px, description removed
+     ══════════════════════════════════════════════════════ -->
+<div class="prod-grid dots">
+
+  <div class="pcard">
+    <!-- 240px image area (was 150px) — full card width, no padding -->
+    <div class="pcard-img">
+      <!-- REPLACE WITH: <Image src={product.images[0]} alt={product.name} fill style={{objectFit:'cover'}} /> -->
+      <div class="img-ph ph-yogurt" style="height:100%">
+        [ Classic Natural Yogurt ]<br>
+        Product photography<br>
+        Clean white/cream surface
+      </div>
+    </div>
+    <!-- Minimal body: name + price only (description paragraph removed) -->
+    <div class="pcard-body">
+      <div class="pcard-nm">Classic Natural Yogurt</div>
+      <div class="pcard-pr">From ₦2,500 · 3 sizes · 4 flavours</div>
+    </div>
+    <div class="card-bar">
+      <span class="card-bar-title">Greek Yogurt</span>
+      <span class="badge b-gray">Products</span>
+    </div>
+  </div>
+
+  <div class="pcard">
+    <div class="pcard-img">
+      <div class="img-ph ph-granola" style="height:100%">
+        [ Honey &amp; Oat Granola ]<br>
+        Product photography<br>
+        Golden tones, textured surface
+      </div>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-nm">Honey &amp; Oat Granola</div>
+      <div class="pcard-pr">From ₦1,800 · 2 sizes · 3 flavours</div>
+    </div>
+    <div class="card-bar">
+      <span class="card-bar-title">Granola</span>
+      <span class="badge b-gray">Products</span>
+    </div>
+  </div>
+
+  <div class="pcard" style="border-right:none">
+    <div class="pcard-img">
+      <div class="img-ph ph-bar" style="height:100%">
+        [ Nutrient Energy Bars ]<br>
+        Product photography<br>
+        Warm earthy tones, unwrapped bar
+      </div>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-nm">Nutrient Energy Bars</div>
+      <div class="pcard-pr">From ₦800 · 2 sizes · 5 flavours</div>
+    </div>
+    <div class="card-bar">
+      <span class="card-bar-title">Energy Bars</span>
+      <span class="badge b-gray">Products</span>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     EDITORIAL IMAGE STRIP  ← NEW SECTION
+     Purpose: visual storytelling between the product grid and the
+     Ythirst copy section. 3 columns, each using a different Oatly-
+     style card treatment. All 340px tall (col heights are equalised).
+     ══════════════════════════════════════════════════════════════ -->
+<div class="edit-strip">
+
+  <!-- Col 1: Dot tile — decorative empty grid cell (like Oatly) -->
+  <!-- In Next.js this is a plain div with the dots background class, no image needed -->
+  <div class="edit-col">
+    <div class="edit-dot-tile dots"></div>
+  </div>
+
+  <!-- Col 2: Single tall portrait card
+       Use: a strong brand lifestyle image — product in context of Lagos daily life,
+       family breakfast, or brand team making product. Something warm and human. -->
+  <div class="edit-col">
+    <div class="edit-card-tall">
+      <!-- REPLACE WITH: <Image src="..." alt="..." fill style={{objectFit:'cover'}} /> -->
+      <div class="img-ph ph-lifestyle" style="height:100%">
+        [ Brand lifestyle photography ]<br>
+        Yogurmac product in use<br>
+        Lagos home / family breakfast scene<br>
+        Or: product flatlay on market table
+      </div>
+      <div class="edit-cap cap-dark">
+        <span class="cap-text ct-light">Wholesome food. Faith-driven purpose.</span>
+        <span class="badge b-cream">Our Story</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Col 3: Two stacked cards — each 50% of column height (170px each) -->
+  <div class="edit-col">
+    <div class="edit-col-stack">
+
+      <!-- Top stacked card: Ythirst outreach scene -->
+      <div class="edit-card-sm">
+        <!-- REPLACE WITH: <Image src="..." alt="..." fill style={{objectFit:'cover'}} /> -->
+        <div class="img-ph ph-outreach2" style="height:100%">
+          [ Ythirst outreach photography ]<br>
+          Children at community outreach<br>
+          Candid, authentic, Lagos
+        </div>
+        <div class="edit-cap cap-green">
+          <span class="cap-text ct-light">Supporting children in need</span>
+          <span class="badge b-cream">Ythirst</span>
+        </div>
+      </div>
+
+      <!-- Bottom stacked card: Production / making scene -->
+      <div class="edit-card-sm">
+        <!-- REPLACE WITH: <Image src="..." alt="..." fill style={{objectFit:'cover'}} /> -->
+        <div class="img-ph ph-kitchen" style="height:100%">
+          [ Production photography ]<br>
+          Hands crafting yogurt / granola<br>
+          Kitchen process, Lagos-made
+        </div>
+        <div class="edit-cap cap-cream">
+          <span class="cap-text ct-dark">Handmade fresh, every single order</span>
+          <span class="badge b-gold">Process</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     YTHIRST STRIP
+     Copy is placeholder — client will supply final content.
+     Specific programme details removed pending copy review.
+     ══════════════════════════════════════════ -->
+<section class="ythirst">
+  <div class="yt-eye">The Ythirst Community Project</div>
+  <h2 class="yt-h2">Supporting young children in need across Lagos.</h2>
+  <div class="yt-funding">Funded entirely by our partner subscriptions &amp; donations — not product sales</div>
+  <p class="yt-note">[ Full programme description to be supplied by client. ]</p>
+  <div class="yt-stats">
+    <div class="yt-stat">
+      <div class="yt-num">900+</div>
+      <div class="yt-lbl">Children reached</div>
+    </div>
+    <div class="yt-stat">
+      <div class="yt-num">18</div>
+      <div class="yt-lbl">Outreach campaigns</div>
+    </div>
+    <div class="yt-stat">
+      <div class="yt-num">Lagos</div>
+      <div class="yt-lbl">And growing</div>
+    </div>
+  </div>
+  <a class="yt-lnk" href="#">Read the full story →</a>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     PARTNER CTA — unchanged from v1
+     ══════════════════════════════════════════ -->
+<div class="partner">
+  <div class="pt-l">
+    <h2 class="pt-h2">Subscribe or donate. Support a child in need.</h2>
+    <p class="pt-sub">Our Ythirst outreaches are funded entirely by people and organisations who choose to subscribe monthly or give a one-time donation. Product purchases are separate — this is purely a mission-driven giving programme.</p>
+  </div>
+  <div class="pt-r">
+    <div class="pt-tier">
+      <div>
+        <div class="pt-nm">Seed Partner</div>
+        <div class="pt-ds">Feeds one child per quarter</div>
+      </div>
+      <div class="pt-amt">₦X/mo</div>
+    </div>
+    <div class="pt-tier">
+      <div>
+        <div class="pt-nm">Growth Partner</div>
+        <div class="pt-ds">Feeds a classroom per quarter</div>
+      </div>
+      <div class="pt-amt">₦X/mo</div>
+    </div>
+    <div class="pt-tier">
+      <div>
+        <div class="pt-nm">Legacy Partner</div>
+        <div class="pt-ds">Funds a full school visit</div>
+      </div>
+      <div class="pt-amt">₦X/mo</div>
+    </div>
+    <button class="btn-pt">Choose a giving tier →</button>
+  </div>
+</div>
+
+
+<!-- SHOW MORE — unchanged -->
+<div class="more-row dots">
+  <button class="btn-more">Show more +</button>
+</div>
+
+
+<!-- FOOTER — unchanged -->
+<footer class="footer">
+  <div class="ft-row">
+    <div class="ft-cell">↑ Back to top</div>
+    <div class="ft-cell">Our story</div>
+  </div>
+  <div class="ft-row">
+    <div class="ft-cell">Ythirst project</div>
+    <div class="ft-cell">Partner with us</div>
+  </div>
+  <div class="ft-row4">
+    <div class="ft-cell4">Contact</div>
+    <div class="ft-cell4">Legal</div>
+    <div class="ft-cell4">Privacy policy</div>
+    <div class="ft-cell4">Cookie consent</div>
+  </div>
+  <div class="ft-copy">© 2024 Yogurmac Foods Limited · Faith-driven · Lagos-made</div>
+</footer>
+
+</body>
+</html>
