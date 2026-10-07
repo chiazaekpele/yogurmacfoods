@@ -97,7 +97,7 @@ export function CheckoutForm({
 
       // Paystack inline checkout. The order is created by the webhook, not here.
       const result = await openPaystack(paystackPublicKey, data.accessCode);
-      if (result === "success") router.push(`/order/${data.orderId}`);
+      if (result === "success") router.push(data.orderUrl);
       else setFormError("Payment was not completed. Your details are saved — you can try again.");
     } catch {
       setFormError("Payment is temporarily unavailable. Please try again in a few minutes.");

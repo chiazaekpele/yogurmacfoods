@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
+import { CONTACT_EMAIL as CONTACT } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Privacy policy", description: "How Yogurmac Foods collects and uses your personal data." };
 
-const CONTACT = "privacy@yogurmacfoods.com";
 
 export default function PrivacyPolicyPage() {
   return (

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 export function Footer() {
   return (
@@ -20,7 +21,7 @@ export function Footer() {
         </Link>
       </div>
       <div className="ft-row4">
-        <a className="ft-cell4" href="mailto:hello@yogurmacfoods.com">
+        <a className="ft-cell4" href={`mailto:${CONTACT_EMAIL}`}>
           Contact
         </a>
         <Link className="ft-cell4" href="/privacy-policy">

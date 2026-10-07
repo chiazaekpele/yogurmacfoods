@@ -359,6 +359,8 @@ This should be rare (expired row, cleaned up early, or a tampered reference). Th
 
 ## 9. Staff portal: authentication and authorisation
 
+> **Decision, 7 Oct 2026: use Neon Auth instead of NextAuth.** Neon Auth is already enabled on the Neon project (its tables live in the `neon_auth` schema, separate from the app's `public` tables). It stores sessions in the database, so deactivating a user can revoke their sessions directly, and its organisation/member/invitation tables cover the invite flow in 9.3. Sections 9.1–9.3 below were written for NextAuth: keep their requirements (rate-limited login, generic error messages, immediate deactivation, 8-hour inactivity expiry, `requireRole` on every protected entry point, single-use expiring invites) and meet them with Neon Auth's equivalents when the portal is built.
+
 ### 9.1 Login
 
 NextAuth Credentials provider. Passwords verified with bcrypt. Login is rate limited to 5 attempts per 10 minutes per IP (Upstash sliding window). Failed and successful attempts return the same generic message so account existence is not leaked.

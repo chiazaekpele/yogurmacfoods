@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { CheckoutError, createPendingCheckout, quote } from "@/lib/checkout";
 import { db } from "@/lib/db";
 import { fromKobo } from "@/lib/money";
+import { orderPath } from "@/lib/order-link";
 import { isSameOrigin } from "@/lib/origin";
 import { initializeTransaction, isPaystackConfigured, isSimulatedPayments } from "@/lib/paystack";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
@@ -64,11 +65,11 @@ export async function POST(req: Request) {
       email: input.customerEmail,
       amountKobo: q.totalKobo,
       reference: pending.orderId,
-      callbackUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/order/${pending.orderId}`,
+      callbackUrl: `${process.env.NEXT_PUBLIC_SITE_URL}${orderPath(pending.orderId)}`,
       metadata: { type: "order", orderId: pending.orderId },
     });
     await db.pendingCheckout.update({ where: { id: pending.id }, data: { accessCode: tx.access_code } });
-    return NextResponse.json({ mode: "paystack", orderId: pending.orderId, accessCode: tx.access_code });
+    return NextResponse.json({ mode: "paystack", orderUrl: orderPath(pending.orderId), accessCode: tx.access_code });
   } catch (err) {
     console.error("Paystack initialize failed:", err);
     await db.pendingCheckout.delete({ where: { id: pending.id } });

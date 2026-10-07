@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCart } from "@/hooks/useCart";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 export function ClearCart() {
   const { clear } = useCart();
@@ -46,7 +47,7 @@ export function OrderPending({ orderId }: { orderId: string }) {
         <div className="order-id">{orderId}</div>
         <p className="prose">
           You will receive an email shortly. If you do not, contact us at{" "}
-          <a href="mailto:hello@yogurmacfoods.com">hello@yogurmacfoods.com</a> with your Order ID.
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> with your Order ID.
         </p>
       </>
     );

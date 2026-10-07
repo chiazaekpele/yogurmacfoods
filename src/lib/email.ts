@@ -1,5 +1,7 @@
 import { Resend } from "resend";
 import { formatNaira } from "./money";
+import { orderPath } from "./order-link";
+import { CONTACT_EMAIL } from "./site";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const FROM = process.env.EMAIL_FROM || "Yogurmac Foods <orders@yogurmacfoods.com>";
@@ -13,7 +15,7 @@ async function send(mail: Mail): Promise<void> {
     return;
   }
   const { error } = await resend.emails.send(
-    { from: FROM, to: mail.to, subject: mail.subject, html: mail.html, text: mail.text },
+    { from: FROM, replyTo: CONTACT_EMAIL, to: mail.to, subject: mail.subject, html: mail.html, text: mail.text },
     { idempotencyKey: mail.idempotencyKey },
   );
   if (error) throw new Error(`Resend: ${error.message}`);
@@ -50,6 +52,7 @@ export async function sendOrderConfirmation(o: OrderEmailData): Promise<void> {
     (i) => `${i.quantity} × ${i.productName} (${i.flavour}, ${i.size}) — ${formatNaira(i.unitPrice)} each`,
   );
   const address = `${o.exactAddress}${o.landmark ? ` (near ${o.landmark})` : ""}, ${o.lga}`;
+  const orderUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}${orderPath(o.orderId)}`;
   const text = [
     `Hi ${o.customerName},`,
     ``,
@@ -64,6 +67,8 @@ export async function sendOrderConfirmation(o: OrderEmailData): Promise<void> {
     `Delivering to: ${address}`,
     ``,
     `Everything is made fresh to order. Your order will be ready in 2–3 business days, and we will message you when it is on its way.`,
+    ``,
+    `View your order: ${orderUrl}`,
   ].join("\n");
 
   const rows = o.items
@@ -81,7 +86,8 @@ export async function sendOrderConfirmation(o: OrderEmailData): Promise<void> {
 <tr><td>Delivery</td><td style="text-align:right">${formatNaira(o.shippingFee)}</td></tr>
 <tr><td><strong>Total paid</strong></td><td style="text-align:right"><strong>${formatNaira(o.total)}</strong></td></tr></table>
 <p><strong>Delivering to:</strong> ${escape(address)}</p>
-<p>Everything is made fresh to order. Your order will be ready in 2–3 business days, and we will message you when it is on its way.</p>`,
+<p>Everything is made fresh to order. Your order will be ready in 2–3 business days, and we will message you when it is on its way.</p>
+<p><a href="${escape(orderUrl)}" style="color:#1A1917;font-weight:bold">View your order</a></p>`,
   );
 
   await send({

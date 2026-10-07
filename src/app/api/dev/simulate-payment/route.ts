@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { toKobo } from "@/lib/money";
+import { orderPath } from "@/lib/order-link";
 import { isSimulatedPayments } from "@/lib/paystack";
 import { handlePaystackEvent } from "@/lib/webhooks";
 
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
         metadata: { type: "order", orderId: pending.orderId },
       },
     });
-    return NextResponse.json({ ok: true, redirect: `/order/${pending.orderId}` });
+    return NextResponse.json({ ok: true, redirect: orderPath(pending.orderId) });
   }
 
   const tier = await db.subscriptionTier.findFirst({ where: { id: body.tierId, isActive: true } });

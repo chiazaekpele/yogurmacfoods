@@ -5,13 +5,15 @@ import { ClearCart, OrderPending } from "@/components/OrderPending";
 import { db } from "@/lib/db";
 import { formatNaira } from "@/lib/money";
 import { ORDER_ID_PATTERN } from "@/lib/order-id";
+import { isValidOrderToken } from "@/lib/order-link";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Your order", robots: { index: false } };
 
-export default async function OrderPage({ params }: PageProps<"/order/[orderId]">) {
+export default async function OrderPage({ params, searchParams }: PageProps<"/order/[orderId]">) {
   const { orderId } = await params;
   if (!ORDER_ID_PATTERN.test(orderId)) notFound();
+  const showAddress = isValidOrderToken(orderId, (await searchParams).t);
 
   const order = await db.order.findUnique({ where: { orderId }, include: { items: true } });
 
@@ -64,10 +66,12 @@ export default async function OrderPage({ params }: PageProps<"/order/[orderId]"
           <span>Total paid</span>
           <span>{formatNaira(order.amountPaid.toString())}</span>
         </div>
-        <p style={{ fontSize: 14, marginTop: 14 }}>
-          <strong>Delivering to:</strong> {order.exactAddress}
-          {order.landmark ? ` (near ${order.landmark})` : ""}, {order.lga}
-        </p>
+        {showAddress && (
+          <p style={{ fontSize: 14, marginTop: 14 }}>
+            <strong>Delivering to:</strong> {order.exactAddress}
+            {order.landmark ? ` (near ${order.landmark})` : ""}, {order.lga}
+          </p>
+        )}
       </div>
 
       <p style={{ marginTop: 24 }}>
