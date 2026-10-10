@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ImpactStats } from "@/components/ImpactStats";
-import { ProductImage } from "@/components/ProductImage";
 
 // Impact numbers are updated by the admin; refresh at least every 5 minutes.
 export const revalidate = 300;
@@ -22,24 +21,15 @@ export default function YthirstPage() {
         <ImpactStats />
       </section>
 
-      <div className="edit-strip">
-        <div className="edit-col">
-          <div className="edit-card-tall">
-            <ProductImage src={null} alt="Children at a Ythirst school visit" label="[ Ythirst outreach photography ]" tone="ph-outreach" />
-          </div>
+      <section className="section">
+        <h2 className="section-h2">What an outreach looks like</h2>
+        <div className="prose">
+          <p>Our team visits schools and communities across Lagos to support young children in need. Every visit is funded by the people and organisations who partner with us monthly.</p>
         </div>
-        <div className="edit-col" style={{ gridColumn: "span 2" }}>
-          <div className="section" style={{ borderBottom: "none" }}>
-            <h2 className="section-h2">What an outreach looks like</h2>
-            <div className="prose">
-              <p>Our team visits schools and communities across Lagos to support young children in need. Every visit is funded by the people and organisations who partner with us monthly.</p>
-            </div>
-            <div className="note-box" style={{ marginTop: 16 }}>
-              Full Ythirst mission narrative and outreach description to be supplied by Yogurmac.
-            </div>
-          </div>
+        <div className="note-box" style={{ marginTop: 16 }}>
+          Full Ythirst mission narrative and outreach description to be supplied by Yogurmac.
         </div>
-      </div>
+      </section>
 
       <div className="partner">
         <div className="pt-l">

@@ -5,10 +5,10 @@ import { LAGOS_LGAS } from "../src/lib/lgas";
 
 // Seed data for local development and first setup.
 //
-// PLACEHOLDERS — every price, flavour, size, delivery fee, tier amount and impact
-// number below is a stand-in (starting prices and counts come from the homepage
-// mockup). Yogurmac must supply the real values; once the staff portal exists the
-// admin edits them there. Re-running this script does not overwrite edits.
+// PLACEHOLDERS — every price, delivery fee, tier amount and impact number below
+// is a stand-in. Products, flavours and sizes follow the supplied product photos.
+// Yogurmac must confirm the real values; the admin edits them in the staff
+// portal. Re-running this script does not overwrite edits.
 
 const db = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL, max: 1 }),
@@ -20,64 +20,62 @@ type SeedProduct = {
   category: "YOGURT" | "GRANOLA" | "ENERGY_BAR";
   description: string;
   sortOrder: number;
-  sizes: { size: string; base: number }[];
-  flavours: { flavour: string; extra: number }[];
+  // Served from public/images/products until Cloudinary is set up.
+  images: string[];
+  variants: { flavour: string; size: string; price: number }[];
 };
 
+// Product names, flavours and sizes follow the product photos Yogurmac supplied.
+// Prices are still placeholders.
+const IMG = "/images/products";
 const PRODUCTS: SeedProduct[] = [
   {
-    name: "Classic Natural Yogurt",
-    slug: "classic-natural-yogurt",
+    name: "Greek Yogurt",
+    slug: "greek-yogurt",
     category: "YOGURT",
     sortOrder: 1,
     description:
-      "Thick, creamy Greek yogurt, strained by hand and made fresh for your order. Rich in protein and naturally tangy — perfect on its own, with granola, or in your morning smoothie.",
-    sizes: [
-      { size: "250ml", base: 2500 },
-      { size: "500ml", base: 4500 },
-      { size: "1 litre", base: 8000 },
-    ],
-    flavours: [
-      { flavour: "Natural", extra: 0 },
-      { flavour: "Strawberry", extra: 300 },
-      { flavour: "Almond Berry", extra: 500 },
-      { flavour: "Vanilla Honey", extra: 300 },
+      "Thick, creamy natural Greek yogurt, strained and made fresh for your order. Choose sweetened (low sugar) or unsweetened (sugar free).",
+    images: [`${IMG}/greek-yogurt-sweetened.jpg`, `${IMG}/greek-yogurt-unsweetened.jpg`],
+    variants: [
+      { flavour: "Natural, sweetened", size: "500ml", price: 4500 },
+      { flavour: "Natural, unsweetened", size: "500ml", price: 4500 },
     ],
   },
   {
-    name: "Honey & Oat Granola",
-    slug: "honey-oat-granola",
-    category: "GRANOLA",
+    name: "Greek Yogurt Parfait",
+    slug: "greek-yogurt-parfait",
+    category: "YOGURT",
     sortOrder: 2,
     description:
-      "Golden, crunchy clusters of oats baked slowly with honey. A wholesome breakfast and the perfect partner for our Greek yogurt.",
-    sizes: [
-      { size: "250g", base: 1800 },
-      { size: "500g", base: 3300 },
-    ],
-    flavours: [
-      { flavour: "Honey & Oat", extra: 0 },
-      { flavour: "Cranberry", extra: 300 },
-      { flavour: "Coconut", extra: 200 },
+      "Layers of our Greek yogurt with fresh apple, coconut and crunchy granola. Keep it classic, or go indulgent with chocolate and peanuts.",
+    images: [`${IMG}/parfait-classic.jpg`, `${IMG}/parfait-chocolate.jpg`],
+    variants: [
+      { flavour: "Classic (apple, coconut & granola)", size: "Cup", price: 3500 },
+      { flavour: "Chocolate & peanut", size: "Cup", price: 4000 },
     ],
   },
   {
-    name: "Nutrient Energy Bars",
-    slug: "nutrient-energy-bars",
-    category: "ENERGY_BAR",
+    name: "Cranola High Fibre Granola",
+    slug: "cranola-granola",
+    category: "GRANOLA",
     sortOrder: 3,
     description:
-      "Dense, chewy bars packed with oats, nuts and seeds for steady energy through a busy Lagos day. Made in small batches, fresh to order.",
-    sizes: [
-      { size: "Single bar", base: 800 },
-      { size: "Box of 6", base: 4500 },
-    ],
-    flavours: [
-      { flavour: "Peanut", extra: 0 },
-      { flavour: "Date & Almond", extra: 100 },
-      { flavour: "Chocolate", extra: 100 },
-      { flavour: "Coconut", extra: 0 },
-      { flavour: "Mixed Berry", extra: 150 },
+      "Crunchy honey-almond granola made from whole-grain oats, coconut, almonds, dates, golden raisins and flax seeds. Sugar free, vegan friendly and preservative free.",
+    images: [`${IMG}/cranola-honey-almond.jpg`],
+    variants: [{ flavour: "Honey-Almond", size: "Jar", price: 6500 }],
+  },
+  {
+    name: "Ridi Energy Bar",
+    slug: "ridi-energy-bar",
+    category: "ENERGY_BAR",
+    sortOrder: 4,
+    description:
+      "Clara’s Ridi bars: crunchy, seed-packed energy bars for steady energy through a busy Lagos day. Made in small batches, fresh to order.",
+    images: [`${IMG}/ridi-peanut.jpg`, `${IMG}/ridi-chocolate.jpg`],
+    variants: [
+      { flavour: "Peanut", size: "55g bar", price: 800 },
+      { flavour: "Chocolate", size: "55g bar", price: 900 },
     ],
   },
 ];
@@ -134,17 +132,8 @@ async function main() {
         description: p.description,
         sortOrder: p.sortOrder,
         isFeatured: true,
-        images: [],
-        variants: {
-          create: p.sizes.flatMap((s) =>
-            p.flavours.map((f) => ({
-              flavour: f.flavour,
-              size: s.size,
-              // Flavour premium scales with pack size, rounded to the nearest ₦50.
-              price: Math.round((s.base + f.extra * (s.base / p.sizes[0].base)) / 50) * 50,
-            })),
-          ),
-        },
+        images: p.images,
+        variants: { create: p.variants },
       },
     });
   }

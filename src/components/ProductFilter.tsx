@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ProductSummary } from "@/lib/categories";
+import { gridClass, type ProductSummary } from "@/lib/categories";
 import { ProductCard } from "./ProductCard";
 
 const FILTERS = [
@@ -24,7 +24,7 @@ export function ProductFilter({ products }: { products: ProductSummary[] }) {
         ))}
       </div>
       {shown.length ? (
-        <div className="prod-grid dots" style={{ borderTop: "none" }}>
+        <div className={gridClass(shown.length)} style={{ borderTop: "none" }}>
           {shown.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}

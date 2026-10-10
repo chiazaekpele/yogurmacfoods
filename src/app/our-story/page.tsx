@@ -22,7 +22,7 @@ export default function OurStoryPage() {
       <div className="pd" style={{ gridTemplateColumns: "1fr 1fr" }}>
         <div className="pd-gallery">
           <div className="pd-main" style={{ height: 380 }}>
-            <ProductImage src={null} alt="The Yogurmac kitchen" label="[ Production photography ]" tone="ph-kitchen" />
+            <ProductImage src="/images/products/greek-yogurt-sweetened.jpg" alt="Yogurmac natural Greek yogurt, 500ml" sizes="(max-width: 860px) 100vw, 50vw" />
           </div>
         </div>
         <div className="section" style={{ borderBottom: "none" }}>

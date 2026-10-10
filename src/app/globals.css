@@ -34,7 +34,7 @@ body{font-family:var(--font-body),'Barlow',sans-serif;color:var(--dark);backgrou
 .hero-h1{font-family:var(--font-condensed),'Barlow Condensed',sans-serif;font-weight:900;font-size:38px;line-height:1.04;letter-spacing:-0.5px;text-transform:uppercase;color:var(--dark)}
 .hero-sub{font-size:13px;color:#55504A;line-height:1.65;max-width:340px;margin-top:16px}
 .hero-cta{display:inline-block;border:var(--b);padding:9px 18px;border-radius:var(--r);font-family:var(--font-condensed),'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;color:var(--dark);text-decoration:none;align-self:flex-start}
-.hero-cards{display:grid;grid-template-rows:1fr 1fr}
+.hero-cards{display:grid;grid-template-rows:1fr auto}
 
 /* Full-bleed image card — replaces hcard-dark and hcard-gold */
 .hcard-img{position:relative;overflow:hidden;border-bottom:var(--b)}
@@ -117,15 +117,13 @@ body{font-family:var(--font-body),'Barlow',sans-serif;color:var(--dark);backgrou
 .edit-col{border-right:var(--b)}
 .edit-col:last-child{border-right:none}
 
-/* Column 1: Dot tile — decorative, like Oatly's blank dot card within the grid.
-   Has minimum height to match the tallest column (340px). */
-.edit-dot-tile{min-height:340px;height:100%}
+/* Column 1: product photo card (same treatment as column 2, no caption) */
 
 /* Column 2: Single tall portrait card — lifestyle or brand image */
 .edit-card-tall{position:relative;overflow:hidden;height:340px}
 
-/* Column 3: Two stacked cards — each takes half the column height */
-.edit-col-stack{display:grid;grid-template-rows:1fr 1fr;height:340px}
+/* Column 3: photo card above a caption-only bar */
+.edit-col-stack{display:grid;grid-template-rows:1fr auto;height:340px}
 .edit-card-sm{position:relative;overflow:hidden}
 .edit-card-sm:first-child{border-bottom:var(--b)}
 
@@ -257,6 +255,20 @@ img{max-width:100%}
 .chip{font-family:var(--cond);font-weight:700;font-size:12.5px;letter-spacing:0.5px;text-transform:uppercase;padding:6px 12px;border:var(--b);border-radius:20px;background:transparent;color:var(--dark);cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--dark);color:var(--cream)}
 .prod-grid .pcard:nth-child(3n){border-right:none}
+/* Column count follows the number of products (gridClass); the last row never
+   leaves empty cells: leftover cards stretch to fill it. */
+@media (min-width:861px){
+  .prod-grid.cols-1{grid-template-columns:1fr}
+  .prod-grid.cols-2{grid-template-columns:repeat(2,1fr)}
+  .prod-grid.cols-4{grid-template-columns:repeat(4,1fr)}
+  .prod-grid.cols-2 .pcard:nth-child(3n),.prod-grid.cols-4 .pcard:nth-child(3n){border-right:var(--b)}
+  .prod-grid.cols-2 .pcard:nth-child(2n),.prod-grid.cols-4 .pcard:nth-child(4n){border-right:none}
+  .prod-grid.cols-3 .pcard:last-child:nth-child(3n+1){grid-column:span 3}
+  .prod-grid.cols-3 .pcard:last-child:nth-child(3n+2){grid-column:span 2}
+}
+@media (min-width:561px) and (max-width:860px){
+  .prod-grid .pcard:last-child:nth-child(odd){grid-column:span 2;border-right:none}
+}
 .empty{padding:48px 28px;text-align:center;color:var(--muted);font-size:14px}
 
 /* Product detail */
@@ -339,7 +351,7 @@ img{max-width:100%}
 @media (max-width:860px){
   .hero,.partner,.pd,.two-col,.pd-story{grid-template-columns:1fr}
   .hero-text,.pt-l,.pd-gallery,.two-col>.main,.pd-story>div:first-child{border-right:none;border-bottom:var(--b)}
-  .hero-cards{grid-template-rows:240px 240px}
+  .hero-cards{grid-template-rows:280px auto}
   .prod-grid{grid-template-columns:1fr 1fr}
   .prod-grid .pcard:nth-child(3n){border-right:var(--b)}
   .prod-grid .pcard:nth-child(2n){border-right:none}
@@ -380,3 +392,8 @@ img{max-width:100%}
   .ft-cell{padding:13px 16px}
   .order-id{font-size:22px}
 }
+
+/* Caption bars shown on their own where there is no photo yet (Ythirst). */
+.hcard-strip-gold.static{position:static;border-top:var(--b);backdrop-filter:none;background:var(--gold);padding:14px 12px}
+.edit-cap.static{position:static;border-top:none;backdrop-filter:none}
+.cap-green.static{background:var(--green)}

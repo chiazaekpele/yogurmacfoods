@@ -2,7 +2,7 @@ import type { Category } from "@/generated/prisma/client";
 import { type ProductSummary } from "./categories";
 import { db } from "./db";
 
-export { CATEGORY_LABELS, type ProductSummary } from "./categories";
+export { CATEGORY_LABELS, gridClass, type ProductSummary } from "./categories";
 
 // Read-only queries for public pages. Only active products and available
 // variants are ever exposed to the shop.

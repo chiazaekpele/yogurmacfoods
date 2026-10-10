@@ -2,20 +2,19 @@ import Link from "next/link";
 import { ImpactStats } from "@/components/ImpactStats";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductImage } from "@/components/ProductImage";
-import { getImpactStats, listActiveTiers, listProducts } from "@/lib/catalog";
+import { getImpactStats, gridClass, listActiveTiers, listProducts } from "@/lib/catalog";
 import { formatNaira } from "@/lib/money";
 
 // Products and prices refresh every 60s; admin edits also trigger an immediate refresh.
 export const revalidate = 60;
 
-// Homepage image slots (docs/homepage-image-mapping-prompt.md). Fill these with
-// files in public/product-images once the photos are recovered.
+// Homepage photos (public/images/products). There are no Ythirst outreach
+// photos yet, so those slots show their caption only, with no empty image area.
 const IMAGES = {
-  heroProduct: null as string | null,
-  heroYthirst: null as string | null,
-  editorialLifestyle: null as string | null,
-  editorialYthirst: null as string | null,
-  editorialKitchen: null as string | null,
+  heroProduct: "/images/products/parfait-classic.jpg",
+  editorialProduct: "/images/products/greek-yogurt-unsweetened.jpg",
+  editorialLifestyle: "/images/products/parfait-chocolate.jpg",
+  editorialKitchen: "/images/products/ridi-chocolate.jpg",
 };
 
 const VALUES = [
@@ -57,9 +56,10 @@ export default async function Home() {
           <div className="hcard-img">
             <ProductImage
               src={IMAGES.heroProduct}
-              alt="Yogurmac Greek yogurt, granola and energy bars"
+              alt="Yogurmac Greek yogurt parfait with apple, coconut and granola"
               label="[ Product hero photography ]"
               tone="ph-product"
+              position="center 8%"
               priority
               sizes="(max-width: 860px) 100vw, 47vw"
             />
@@ -68,33 +68,23 @@ export default async function Home() {
               <span className="badge b-gray">Products</span>
             </div>
           </div>
-          <div className="hcard-img">
-            <ProductImage
-              src={IMAGES.heroYthirst}
-              alt="Children at a Ythirst outreach in Lagos"
-              label="[ Ythirst outreach photography ]"
-              tone="ph-outreach"
-              priority
-              sizes="(max-width: 860px) 100vw, 47vw"
-            />
-            {children && (
-              <Link href="/ythirst" className="hcard-strip-gold" style={{ textDecoration: "none" }}>
-                <div>
-                  <div className="strip-stat-num">{children.value.toLocaleString("en-NG")}</div>
-                  <div className="strip-stat-lbl">
-                    Children supported
-                    <br />
-                    through the Ythirst Project
-                  </div>
+          {children && (
+            <Link href="/ythirst" className="hcard-strip-gold static" style={{ textDecoration: "none" }}>
+              <div>
+                <div className="strip-stat-num">{children.value.toLocaleString("en-NG")}</div>
+                <div className="strip-stat-lbl">
+                  Children supported
+                  <br />
+                  through the Ythirst Project
                 </div>
-                <span className="badge b-dark">Ythirst</span>
-              </Link>
-            )}
-          </div>
+              </div>
+              <span className="badge b-dark">Ythirst</span>
+            </Link>
+          )}
         </div>
       </div>
 
-      <div className="prod-grid dots">
+      <div className={gridClass(products.length)}>
         {products.map((p) => (
           <ProductCard key={p.id} product={p} />
         ))}
@@ -102,11 +92,13 @@ export default async function Home() {
 
       <div className="edit-strip">
         <div className="edit-col">
-          <div className="edit-dot-tile dots" />
+          <div className="edit-card-tall">
+            <ProductImage src={IMAGES.editorialProduct} alt="Yogurmac unsweetened natural Greek yogurt" sizes="(max-width: 860px) 50vw, 33vw" />
+          </div>
         </div>
         <div className="edit-col">
           <div className="edit-card-tall">
-            <ProductImage src={IMAGES.editorialLifestyle} alt="Yogurmac products at a Lagos breakfast table" label="[ Brand lifestyle photography ]" tone="ph-lifestyle" />
+            <ProductImage src={IMAGES.editorialLifestyle} alt="Chocolate and peanut Greek yogurt parfait" sizes="(max-width: 860px) 50vw, 33vw" />
             <Link href="/our-story" className="edit-cap cap-dark" style={{ textDecoration: "none" }}>
               <span className="cap-text ct-light">Wholesome food. Faith-driven purpose.</span>
               <span className="badge b-cream">Our Story</span>
@@ -116,19 +108,16 @@ export default async function Home() {
         <div className="edit-col">
           <div className="edit-col-stack">
             <div className="edit-card-sm">
-              <ProductImage src={IMAGES.editorialYthirst} alt="Children at a Ythirst community outreach" label="[ Ythirst outreach photography ]" tone="ph-outreach2" />
-              <Link href="/ythirst" className="edit-cap cap-green" style={{ textDecoration: "none" }}>
-                <span className="cap-text ct-light">Supporting children in need</span>
-                <span className="badge b-cream">Ythirst</span>
-              </Link>
-            </div>
-            <div className="edit-card-sm">
-              <ProductImage src={IMAGES.editorialKitchen} alt="Yogurmac products being made by hand" label="[ Production photography ]" tone="ph-kitchen" />
+              <ProductImage src={IMAGES.editorialKitchen} alt="Ridi chocolate energy bar" sizes="(max-width: 860px) 50vw, 33vw" />
               <div className="edit-cap cap-cream">
                 <span className="cap-text ct-dark">Handmade fresh, every single order</span>
                 <span className="badge b-gold">Process</span>
               </div>
             </div>
+            <Link href="/ythirst" className="edit-cap cap-green static" style={{ textDecoration: "none" }}>
+              <span className="cap-text ct-light">Supporting children in need</span>
+              <span className="badge b-cream">Ythirst</span>
+            </Link>
           </div>
         </div>
       </div>

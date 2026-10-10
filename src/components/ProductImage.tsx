@@ -9,6 +9,7 @@ export function ProductImage({
   tone = "ph-generic",
   priority,
   sizes = "(max-width: 560px) 100vw, 33vw",
+  position = "center",
 }: {
   src: string | null | undefined;
   alt: string;
@@ -16,6 +17,7 @@ export function ProductImage({
   tone?: string;
   priority?: boolean;
   sizes?: string;
+  position?: string;
 }) {
   if (!src) {
     return (
@@ -24,5 +26,5 @@ export function ProductImage({
       </div>
     );
   }
-  return <Image src={src} alt={alt} fill sizes={sizes} style={{ objectFit: "cover" }} priority={priority} />;
+  return <Image src={src} alt={alt} fill sizes={sizes} style={{ objectFit: "cover", objectPosition: position }} priority={priority} />;
 }
