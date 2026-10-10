@@ -1,0 +1,41 @@
+{
+  "name": "yogurmac-staff",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "NODE_OPTIONS=--dns-result-order=ipv4first next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "postinstall": "prisma generate --generator staffClient"
+  },
+  "dependencies": {
+    "@neondatabase/auth": "0.5.0-beta",
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "@upstash/ratelimit": "2.2.0",
+    "@upstash/redis": "1.39.0",
+    "next": "16.3.8",
+    "pg": "8.23.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "resend": "6.32.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "@types/pg": "8.23.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "dotenv": "18.0.5",
+    "prisma": "7.10.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.3"
+  },
+  "allowScripts": {
+    "@prisma/engines@7.10.0": true,
+    "prisma@7.10.0": true
+  }
+}

@@ -153,24 +153,33 @@ async function orderCharge(data: Record<string, any>): Promise<DispatchResult> {
 
 function emailEffect(orderDbId: string): SideEffect {
   return async () => {
-    const order = await db.order.findUnique({ where: { id: orderDbId }, include: { items: true } });
-    if (!order || order.emailSent) return;
-    try {
-      await sendOrderConfirmation({
-        ...order,
-        subtotal: order.subtotal.toString(),
-        shippingFee: order.shippingFee.toString(),
-        total: order.total.toString(),
-        items: order.items.map((i) => ({ ...i, unitPrice: i.unitPrice.toString() })),
-      });
-      await db.order.update({ where: { id: order.id }, data: { emailSent: true, emailError: null } });
-    } catch (err) {
-      // The order stands; the admin dashboard lists unsent confirmations with a resend button.
-      const message = err instanceof Error ? err.message : String(err);
-      console.error(`Order confirmation email failed for ${order.orderId}:`, message);
-      await db.order.update({ where: { id: order.id }, data: { emailError: message.slice(0, 500) } });
-    }
+    await sendOrderEmail(orderDbId);
   };
+}
+
+// Sends the confirmation once (emailSent guards repeats). Also used by the staff
+// portal's resend button via /api/internal/resend-confirmation.
+export async function sendOrderEmail(orderDbId: string): Promise<{ ok: boolean; error?: string }> {
+  const order = await db.order.findUnique({ where: { id: orderDbId }, include: { items: true } });
+  if (!order) return { ok: false, error: "Order not found." };
+  if (order.emailSent) return { ok: true };
+  try {
+    await sendOrderConfirmation({
+      ...order,
+      subtotal: order.subtotal.toString(),
+      shippingFee: order.shippingFee.toString(),
+      total: order.total.toString(),
+      items: order.items.map((i) => ({ ...i, unitPrice: i.unitPrice.toString() })),
+    });
+    await db.order.update({ where: { id: order.id }, data: { emailSent: true, emailError: null } });
+    return { ok: true };
+  } catch (err) {
+    // The order stands; the admin dashboard lists unsent confirmations with a resend button.
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`Order confirmation email failed for ${order.orderId}:`, message);
+    await db.order.update({ where: { id: order.id }, data: { emailError: message.slice(0, 500) } });
+    return { ok: false, error: message };
+  }
 }
 
 // ── Donation subscriptions ────────────────────────────────────────────────────

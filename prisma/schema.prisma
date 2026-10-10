@@ -8,6 +8,12 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
+// The staff portal (staff/) gets its own copy of the client.
+generator staffClient {
+  provider = "prisma-client"
+  output   = "../staff/src/generated/prisma"
+}
+
 datasource db {
   provider = "postgresql"
 }
@@ -30,6 +36,32 @@ enum SubscriptionStatus {
   ACTIVE
   CANCELLED
   EXPIRED
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum ReviewCadence {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  BLOCKED
+}
+
+enum SetbackCategory {
+  INGREDIENT_SHORTAGE
+  EQUIPMENT_ISSUE
+  PACKAGING_ISSUE
+  OTHER
 }
 
 model Product {
@@ -97,25 +129,27 @@ model PendingCheckout {
 }
 
 model Order {
-  id            String      @id @default(cuid())
-  orderId       String      @unique
+  id            String          @id @default(cuid())
+  orderId       String          @unique
   customerName  String
   customerEmail String
   customerPhone String
   lga           String
   exactAddress  String
   landmark      String?
-  subtotal      Decimal     @db.Decimal(12, 2)
-  shippingFee   Decimal     @db.Decimal(12, 2)
-  total         Decimal     @db.Decimal(12, 2)
-  amountPaid    Decimal     @db.Decimal(12, 2)
-  status        OrderStatus @default(CONFIRMED)
-  paystackRef   String      @unique
-  emailSent     Boolean     @default(false)
+  subtotal      Decimal         @db.Decimal(12, 2)
+  shippingFee   Decimal         @db.Decimal(12, 2)
+  total         Decimal         @db.Decimal(12, 2)
+  amountPaid    Decimal         @db.Decimal(12, 2)
+  status        OrderStatus     @default(CONFIRMED)
+  paystackRef   String          @unique
+  emailSent     Boolean         @default(false)
   emailError    String?
   items         OrderItem[]
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  claim         OrderClaim?
+  setbacks      SetbackReport[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
   @@index([status, createdAt])
   @@index([createdAt])
@@ -235,4 +269,190 @@ model AuditLog {
   createdAt     DateTime @default(now())
 
   @@index([entityType, entityId, createdAt])
+}
+
+// ── Staff portal (docs/yogurmac-staff-prd.md §8, TRD §5.4) ────────────────────
+
+// Passwords and sessions live in Neon Auth (schema neon_auth); this row holds
+// the portal's own account state. authUserId links the two once the invite is
+// accepted. Invited: no authUserId, isActive false. Deactivated: isActive false
+// with authUserId set.
+model User {
+  id              String    @id @default(cuid())
+  authUserId      String?   @unique
+  name            String
+  email           String    @unique
+  role            Role      @default(STAFF)
+  isActive        Boolean   @default(false)
+  inviteTokenHash String?   @unique
+  inviteExpiry    DateTime?
+  lastActiveAt    DateTime?
+  deactivatedAt   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  claims            OrderClaim[]
+  setbacks          SetbackReport[]
+  dailyLogs         DailyLog[]
+  submissions       ReviewSubmission[]
+  assignments       TaskAssignment[]
+  tasksCreated      Task[]             @relation("TaskCreatedBy")
+  announcements     Announcement[]     @relation("AnnouncementCreatedBy")
+  announcementReads AnnouncementRead[]
+}
+
+// One cadence and question set. Changing questions after anyone has answered
+// ends this cycle and starts a new one, so past answers keep their questions.
+model ReviewCycle {
+  id          String             @id @default(cuid())
+  cadence     ReviewCadence
+  startDate   DateTime           @db.Date
+  endDate     DateTime?
+  isActive    Boolean            @default(false)
+  questions   ReviewQuestion[]
+  submissions ReviewSubmission[]
+  createdAt   DateTime           @default(now())
+}
+
+model ReviewQuestion {
+  id              String           @id @default(cuid())
+  cycleId         String
+  cycle           ReviewCycle      @relation(fields: [cycleId], references: [id], onDelete: Restrict)
+  questionText    String
+  // Admin-only: never selected on any staff path.
+  expectedOutcome String
+  isLongAnswer    Boolean          @default(true)
+  order           Int
+  responses       ReviewResponse[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([cycleId, order])
+}
+
+model ReviewSubmission {
+  id          String           @id @default(cuid())
+  cycleId     String
+  cycle       ReviewCycle      @relation(fields: [cycleId], references: [id], onDelete: Restrict)
+  staffId     String
+  staff       User             @relation(fields: [staffId], references: [id], onDelete: Restrict)
+  // First day (Lagos) of the review period this submission answers.
+  periodStart DateTime         @db.Date
+  submittedAt DateTime?
+  isMissed    Boolean          @default(false)
+  responses   ReviewResponse[]
+  createdAt   DateTime         @default(now())
+
+  @@unique([staffId, cycleId, periodStart])
+}
+
+model ReviewResponse {
+  id           String           @id @default(cuid())
+  submissionId String
+  submission   ReviewSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  questionId   String
+  question     ReviewQuestion   @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  responseText String
+  adminNote    String?
+  createdAt    DateTime         @default(now())
+}
+
+model Task {
+  id          String           @id @default(cuid())
+  title       String
+  description String?
+  // "All Staff": one assignment per active staff member, added for new staff too.
+  assignToAll Boolean          @default(false)
+  dueDate     DateTime?        @db.Date
+  createdById String
+  createdBy   User             @relation("TaskCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  assignments TaskAssignment[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+// Per-person progress on a task (TRD §5.4).
+model TaskAssignment {
+  id          String     @id @default(cuid())
+  taskId      String
+  task        Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  staffId     String
+  staff       User       @relation(fields: [staffId], references: [id], onDelete: Restrict)
+  status      TaskStatus @default(PENDING)
+  blockerNote String?
+  completedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([taskId, staffId])
+  @@index([staffId, status])
+}
+
+model DailyLog {
+  id              String   @id @default(cuid())
+  staffId         String
+  staff           User     @relation(fields: [staffId], references: [id], onDelete: Restrict)
+  logDate         DateTime @db.Date
+  activityText    String
+  generalSetbacks String?
+  submittedAt     DateTime
+  editableUntil   DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([staffId, logDate])
+  @@index([logDate])
+}
+
+model SetbackReport {
+  id          String          @id @default(cuid())
+  orderId     String
+  order       Order           @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  staffId     String
+  staff       User            @relation(fields: [staffId], references: [id], onDelete: Restrict)
+  category    SetbackCategory
+  description String
+  createdAt   DateTime        @default(now())
+
+  @@index([orderId])
+  @@index([staffId])
+}
+
+// Visible to staff once scheduledFor has passed; no cron needed (TRD §12).
+model Announcement {
+  id           String             @id @default(cuid())
+  title        String
+  body         String
+  scheduledFor DateTime
+  createdById  String
+  createdBy    User               @relation("AnnouncementCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  reads        AnnouncementRead[]
+  createdAt    DateTime           @default(now())
+
+  @@index([scheduledFor])
+}
+
+model AnnouncementRead {
+  id             String       @id @default(cuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  staffId        String
+  staff          User         @relation(fields: [staffId], references: [id], onDelete: Restrict)
+  readAt         DateTime     @default(now())
+
+  @@unique([announcementId, staffId])
+}
+
+// One claim per order. A raw-SQL partial unique index also limits each staff
+// member to one order in production at a time (TRD §5.5).
+model OrderClaim {
+  id            String    @id @default(cuid())
+  orderId       String    @unique
+  order         Order     @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  staffId       String
+  staff         User      @relation(fields: [staffId], references: [id], onDelete: Restrict)
+  claimedAt     DateTime  @default(now())
+  markedReadyAt DateTime?
+
+  @@index([staffId])
 }
