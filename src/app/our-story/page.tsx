@@ -22,7 +22,7 @@ export default function OurStoryPage() {
       <div className="pd" style={{ gridTemplateColumns: "1fr 1fr" }}>
         <div className="pd-gallery">
           <div className="pd-main" style={{ height: 380 }}>
-            <ProductImage src="/images/products/greek-yogurt-sweetened.jpg" alt="Yogurmac natural Greek yogurt, 500ml" sizes="(max-width: 860px) 100vw, 50vw" />
+            <ProductImage src="/images/products/greek-yogurt-sweetened.jpg" alt="Yogurmac natural Greek yogurt, 500ml" sizes="(max-width: 860px) 100vw, 50vw" eager />
           </div>
         </div>
         <div className="section" style={{ borderBottom: "none" }}>

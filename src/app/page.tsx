@@ -60,7 +60,7 @@ export default async function Home() {
               label="[ Product hero photography ]"
               tone="ph-product"
               position="center 8%"
-              priority
+              eager
               sizes="(max-width: 860px) 100vw, 47vw"
             />
             <div className="hcard-strip-dark">
@@ -85,8 +85,8 @@ export default async function Home() {
       </div>
 
       <div className={gridClass(products.length)}>
-        {products.map((p) => (
-          <ProductCard key={p.id} product={p} />
+        {products.map((p, i) => (
+          <ProductCard key={p.id} product={p} eager={i < 4} />
         ))}
       </div>
 

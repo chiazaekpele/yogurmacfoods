@@ -30,7 +30,7 @@ export function ProductGallery({
           alt={name}
           label={`[ ${name} ]`}
           tone={TONES[category]}
-          priority
+          eager
           sizes="(max-width: 860px) 100vw, 53vw"
         />
       </div>
@@ -38,7 +38,7 @@ export function ProductGallery({
         <div className="pd-thumbs">
           {images.map((src, i) => (
             <button key={src} className="pd-thumb" aria-label={`Show image ${i + 1}`} aria-current={i === index} onClick={() => setIndex(i)}>
-              <ProductImage src={src} alt="" sizes="84px" />
+              <ProductImage src={src} alt="" sizes="84px" eager />
             </button>
           ))}
         </div>

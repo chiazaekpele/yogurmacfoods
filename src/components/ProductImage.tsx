@@ -7,7 +7,7 @@ export function ProductImage({
   alt,
   label,
   tone = "ph-generic",
-  priority,
+  eager,
   sizes = "(max-width: 560px) 100vw, 33vw",
   position = "center",
 }: {
@@ -15,7 +15,9 @@ export function ProductImage({
   alt: string;
   label?: string;
   tone?: string;
-  priority?: boolean;
+  // Above the fold (possibly the LCP image): load immediately, at high priority.
+  // Replaces the `priority` prop, deprecated in Next.js 16.
+  eager?: boolean;
   sizes?: string;
   position?: string;
 }) {
@@ -26,5 +28,15 @@ export function ProductImage({
       </div>
     );
   }
-  return <Image src={src} alt={alt} fill sizes={sizes} style={{ objectFit: "cover", objectPosition: position }} priority={priority} />;
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      sizes={sizes}
+      style={{ objectFit: "cover", objectPosition: position }}
+      loading={eager ? "eager" : "lazy"}
+      fetchPriority={eager ? "high" : undefined}
+    />
+  );
 }

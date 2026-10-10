@@ -11,13 +11,13 @@ const TONES: Record<ProductSummary["category"], string> = {
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-export function ProductCard({ product }: { product: ProductSummary }) {
+export function ProductCard({ product, eager }: { product: ProductSummary; eager?: boolean }) {
   const href = `/products/${product.slug}`;
   return (
     <div className="pcard">
       <Link href={href}>
         <div className="pcard-img">
-          <ProductImage src={product.image} alt={product.name} label={`[ ${product.name} ]`} tone={TONES[product.category]} />
+          <ProductImage src={product.image} alt={product.name} label={`[ ${product.name} ]`} tone={TONES[product.category]} eager={eager} />
         </div>
         <div className="pcard-body">
           <div className="pcard-nm">{product.name}</div>

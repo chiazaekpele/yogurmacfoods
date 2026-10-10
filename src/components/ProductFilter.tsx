@@ -25,8 +25,8 @@ export function ProductFilter({ products }: { products: ProductSummary[] }) {
       </div>
       {shown.length ? (
         <div className={gridClass(shown.length)} style={{ borderTop: "none" }}>
-          {shown.map((p) => (
-            <ProductCard key={p.id} product={p} />
+          {shown.map((p, i) => (
+            <ProductCard key={p.id} product={p} eager={i < 4} />
           ))}
         </div>
       ) : (
