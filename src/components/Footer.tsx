@@ -25,9 +25,6 @@ export function Footer() {
           Contact
         </a>
         <Link className="ft-cell4" href="/privacy-policy">
-          Legal
-        </Link>
-        <Link className="ft-cell4" href="/privacy-policy">
           Privacy policy
         </Link>
         <Link className="ft-cell4" href="/privacy-policy#cookies">

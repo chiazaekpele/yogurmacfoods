@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ProductGallery } from "@/components/ProductGallery";
-import { VariantPicker } from "@/components/VariantPicker";
+import { ProductView } from "@/components/ProductView";
 import { CATEGORY_LABELS, getProductBySlug } from "@/lib/catalog";
 
 export const revalidate = 60;
@@ -48,25 +47,24 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-      <div className="pd">
-        <ProductGallery name={product.name} images={product.images} category={product.category} />
-        <div className="pd-info">
-          <div>
-            <div className="eyebrow">
-              <Link href="/products">Products</Link> / {CATEGORY_LABELS[product.category]}
+      <ProductView
+        product={{ name: product.name, slug: product.slug, images: product.images, category: product.category }}
+        variants={product.variants}
+        header={
+          <>
+            <div>
+              <div className="eyebrow">
+                <Link href="/products">Products</Link> / {CATEGORY_LABELS[product.category]}
+              </div>
+              <h1 className="pd-name">{product.name}</h1>
             </div>
-            <h1 className="pd-name">{product.name}</h1>
-          </div>
-          <p className="pd-desc">{product.description}</p>
-          <VariantPicker
-            product={{ name: product.name, slug: product.slug, image: product.images[0] ?? null }}
-            variants={product.variants}
-          />
-          <div className="fresh-note">Made fresh to order — ready in 2–3 business days</div>
-        </div>
-      </div>
+            <p className="pd-desc">{product.description}</p>
+          </>
+        }
+        footer={<div className="fresh-note">Made fresh to order — ready in 2–3 business days</div>}
+      />
+
       <div className="pd-story">
-        <div className="dots" />
         <div>
           <div className="eyebrow">Our story</div>
           <p className="prose">

@@ -49,6 +49,7 @@ export async function getProductBySlug(slug: string) {
       size: v.size,
       price: v.price.toString(),
       isAvailable: v.isAvailable,
+      imageUrl: v.imageUrl,
     })),
   };
 }

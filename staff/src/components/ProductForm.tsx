@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { saveProductAction, type SaveState } from "@/app/admin/products/actions";
 import { CATEGORIES, CATEGORY_LABELS, imageSrc, slugify } from "@/lib/product-meta";
 
-type Variant = { key: string; id?: string; flavour: string; size: string; price: string; isAvailable: boolean };
+type Variant = { key: string; id?: string; flavour: string; size: string; price: string; isAvailable: boolean; imageUrl: string | null };
 export type ProductFormValue = {
   name: string;
   slug: string;
@@ -170,7 +170,13 @@ export function ProductForm({ productId, initial, uploadsEnabled }: { productId:
                       ←
                     </button>
                   )}
-                  <button type="button" className="link" aria-label={`Remove photo ${i + 1}`} onClick={() => set("images", v.images.filter((_, j) => j !== i))}>
+                  <button type="button" className="link" aria-label={`Remove photo ${i + 1}`} onClick={() =>
+                      setV((s) => ({
+                        ...s,
+                        images: s.images.filter((_, j) => j !== i),
+                        variants: s.variants.map((row) => (row.imageUrl === url ? { ...row, imageUrl: null } : row)),
+                      }))
+                    }>
                     ✕
                   </button>
                 </span>
@@ -212,6 +218,17 @@ export function ProductForm({ productId, initial, uploadsEnabled }: { productId:
               <label htmlFor={`price-${x.key}`}>Price (₦)</label>
               <input id={`price-${x.key}`} type="number" required min="1" step="0.01" value={x.price} onChange={(e) => setVariant(i, { price: e.target.value })} />
             </div>
+            <div className="field" style={{ marginTop: 0 }}>
+              <label htmlFor={`photo-${x.key}`}>Photo</label>
+              <select id={`photo-${x.key}`} value={x.imageUrl ?? ""} onChange={(e) => setVariant(i, { imageUrl: e.target.value || null })} disabled={!v.images.length}>
+                <option value="">Main photo</option>
+                {v.images.map((url, n) => (
+                  <option key={url} value={url}>
+                    Photo {n + 1}
+                  </option>
+                ))}
+              </select>
+            </div>
             <label className="check" style={{ paddingBottom: 10 }}>
               <input type="checkbox" checked={x.isAvailable} onChange={(e) => setVariant(i, { isAvailable: e.target.checked })} /> Available
             </label>
@@ -230,7 +247,7 @@ export function ProductForm({ productId, initial, uploadsEnabled }: { productId:
           type="button"
           className="btn btn-ghost btn-sm"
           style={{ marginTop: 12 }}
-          onClick={() => set("variants", [...v.variants, { key: key(), flavour: "", size: "", price: "", isAvailable: true }])}
+          onClick={() => set("variants", [...v.variants, { key: key(), flavour: "", size: "", price: "", isAvailable: true, imageUrl: null }])}
         >
           Add flavour and size
         </button>

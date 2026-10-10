@@ -9,12 +9,19 @@ export function ProductGallery({
   name,
   images,
   category,
+  index: controlled,
+  onIndex,
 }: {
   name: string;
   images: string[];
   category: keyof typeof TONES;
+  // Optional: let a parent drive the shown photo (e.g. from the chosen flavour).
+  index?: number;
+  onIndex?: (i: number) => void;
 }) {
-  const [index, setIndex] = useState(0);
+  const [own, setOwn] = useState(0);
+  const index = controlled ?? own;
+  const setIndex = onIndex ?? setOwn;
   return (
     <div className="pd-gallery">
       <div className="pd-main">

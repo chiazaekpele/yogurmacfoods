@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { formatNaira } from "@/lib/money";
 import { ORDER_ID_PATTERN } from "@/lib/order-id";
 import { isValidOrderToken } from "@/lib/order-link";
+import { Naira } from "@/components/Naira";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Your order", robots: { index: false } };
@@ -64,7 +65,9 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/or
         </div>
         <div className="sum-row total">
           <span>Total paid</span>
-          <span>{formatNaira(order.amountPaid.toString())}</span>
+          <span>
+            <Naira value={order.amountPaid.toString()} />
+          </span>
         </div>
         {showAddress && (
           <p style={{ fontSize: 14, marginTop: 14 }}>

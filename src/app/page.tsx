@@ -3,7 +3,7 @@ import { ImpactStats } from "@/components/ImpactStats";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductImage } from "@/components/ProductImage";
 import { getImpactStats, gridClass, listActiveTiers, listProducts } from "@/lib/catalog";
-import { formatNaira } from "@/lib/money";
+import { Naira } from "@/components/Naira";
 
 // Products and prices refresh every 60s; admin edits also trigger an immediate refresh.
 export const revalidate = 60;
@@ -18,10 +18,10 @@ const IMAGES = {
 };
 
 const VALUES = [
-  { icon: "✝", name: "Faith-driven", desc: "A business built on faith, run with integrity and care." },
-  { icon: "🇳🇬", name: "Indigenous quality", desc: "Premium products made right here in Lagos, Nigeria." },
-  { icon: "🤝", name: "Community impact", desc: "Partner giving funds the Ythirst Community Project." },
-  { icon: "🌾", name: "Wholesome nutrition", desc: "Real ingredients, made fresh for every single order." },
+  { name: "Faith-driven", desc: "A business built on faith, run with integrity and care." },
+  { name: "Indigenous quality", desc: "Premium products made right here in Lagos, Nigeria." },
+  { name: "Community impact", desc: "Partner giving funds the Ythirst Community Project." },
+  { name: "Wholesome nutrition", desc: "Real ingredients, made fresh for every single order." },
 ];
 
 export default async function Home() {
@@ -153,7 +153,9 @@ export default async function Home() {
                 <div className="pt-nm">{t.name}</div>
                 <div className="pt-ds">{t.description}</div>
               </div>
-              <div className="pt-amt">{formatNaira(t.monthlyAmount)}/mo</div>
+              <div className="pt-amt">
+                <Naira value={t.monthlyAmount} />/mo
+              </div>
             </div>
           ))}
           <Link className="btn-pt" href="/partner">
@@ -163,10 +165,10 @@ export default async function Home() {
       </div>
 
       <div className="values" aria-label="Our values">
-        {VALUES.map((v) => (
+        {VALUES.map((v, i) => (
           <div className="value" key={v.name}>
-            <div className="value-ic" aria-hidden>
-              {v.icon}
+            <div className="value-num" aria-hidden>
+              {String(i + 1).padStart(2, "0")}
             </div>
             <div className="value-nm">{v.name}</div>
             <div className="value-ds">{v.desc}</div>

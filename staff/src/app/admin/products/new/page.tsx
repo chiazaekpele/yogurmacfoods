@@ -22,7 +22,7 @@ export default async function NewProductPage() {
           images: [],
           isFeatured: false,
           isActive: true,
-          variants: [{ flavour: "", size: "", price: "", isAvailable: true }],
+          variants: [{ flavour: "", size: "", price: "", isAvailable: true, imageUrl: null }],
         }}
       />
     </div>

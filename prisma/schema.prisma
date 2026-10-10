@@ -89,6 +89,8 @@ model ProductVariant {
   size        String
   price       Decimal     @db.Decimal(12, 2)
   isAvailable Boolean     @default(true)
+  // The product photo shown when this option is chosen (one of Product.images).
+  imageUrl    String?
   orderItems  OrderItem[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt

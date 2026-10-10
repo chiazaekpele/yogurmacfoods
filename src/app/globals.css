@@ -19,7 +19,6 @@ body{font-family:var(--font-body),'Barlow',sans-serif;color:var(--dark);backgrou
 /* ── NAV (unchanged) ── */
 .nav{border-bottom:var(--b);background:var(--cream)}
 .nav-top{display:flex;align-items:center;padding:9px 20px;gap:8px;border-bottom:1px solid rgba(26,25,23,0.15)}
-.nav-home{width:30px;height:30px;border:var(--b);border-radius:var(--r);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px}
 .nav-search{flex:1;border:none;border-bottom:1px solid #ccc;background:transparent;font-family:var(--font-body),'Barlow',sans-serif;font-size:12.5px;padding:4px 8px;outline:none;color:var(--dark)}
 .nav-actions{display:flex;gap:6px}
 .nav-btn{padding:5px 12px;border:var(--b);border-radius:var(--r);background:transparent;font-family:var(--font-condensed),'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;color:var(--dark)}
@@ -177,7 +176,7 @@ body{font-family:var(--font-body),'Barlow',sans-serif;color:var(--dark);backgrou
 .ft-row{display:grid;grid-template-columns:1fr 1fr;border-bottom:var(--b)}
 .ft-cell{padding:13px 20px;font-family:var(--font-condensed),'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dark);border-right:var(--b);cursor:pointer;display:flex;align-items:center;gap:6px}
 .ft-cell:last-child{border-right:none}
-.ft-row4{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:var(--b)}
+.ft-row4{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:var(--b)}
 .ft-cell4{padding:11px 20px;font-family:var(--font-condensed),'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--dark);border-right:var(--b);cursor:pointer}
 .ft-cell4:last-child{border-right:none}
 .ft-copy{text-align:center;padding:12px;font-family:var(--font-condensed),'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:#888}
@@ -194,7 +193,7 @@ img{max-width:100%}
 
 /* Nav: wordmark replaces the mockup's search box (search is out of scope for v1) */
 .nav-brand{flex:1;font-family:var(--cond);font-weight:900;font-size:17px;letter-spacing:1px;text-transform:uppercase;text-decoration:none;color:var(--dark)}
-.nav-home,.nav-btn{text-decoration:none}
+.nav-btn{text-decoration:none}
 .nav-btn{display:inline-flex;align-items:center;gap:4px}
 .nav-links a[aria-current="page"]{border-bottom:1.5px solid var(--dark)}
 
@@ -213,7 +212,7 @@ img{max-width:100%}
 .values{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:var(--b)}
 .value{padding:22px 20px;border-right:var(--b)}
 .value:last-child{border-right:none}
-.value-ic{font-size:22px;margin-bottom:8px}
+.value-num{font-family:var(--cond);font-weight:900;font-size:22px;line-height:1;color:var(--gold);margin-bottom:10px}
 .value-nm{font-family:var(--cond);font-weight:800;font-size:16px;text-transform:uppercase;letter-spacing:0.3px}
 .value-ds{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:4px}
 
@@ -290,9 +289,8 @@ img{max-width:100%}
 .qty button{width:38px;height:38px;border:none;background:transparent;font-size:18px;cursor:pointer;color:var(--dark)}
 .qty input{width:48px;height:38px;border:none;border-left:var(--b);border-right:var(--b);text-align:center;font:inherit;font-size:15px;background:transparent;color:var(--dark)}
 .fresh-note{font-family:var(--cond);font-weight:700;font-size:13px;letter-spacing:0.4px;text-transform:uppercase;background:var(--green);color:#F0F7E8;padding:8px 12px;align-self:flex-start}
-.pd-story{display:grid;grid-template-columns:1fr 2fr;border-bottom:var(--b)}
-.pd-story>div{padding:24px 28px}
-.pd-story>div:first-child{border-right:var(--b)}
+.pd-story{border-bottom:var(--b)}
+.pd-story>div{padding:24px 28px;max-width:760px}
 
 /* Cart and checkout */
 .two-col{display:grid;grid-template-columns:1.5fr 1fr;border-bottom:var(--b);align-items:start}
@@ -349,8 +347,8 @@ img{max-width:100%}
    rules stack its grids without changing the desktop design.
    ══════════════════════════════════════════════════════════════ */
 @media (max-width:860px){
-  .hero,.partner,.pd,.two-col,.pd-story{grid-template-columns:1fr}
-  .hero-text,.pt-l,.pd-gallery,.two-col>.main,.pd-story>div:first-child{border-right:none;border-bottom:var(--b)}
+  .hero,.partner,.pd,.two-col{grid-template-columns:1fr}
+  .hero-text,.pt-l,.pd-gallery,.two-col>.main{border-right:none;border-bottom:var(--b)}
   .hero-cards{grid-template-rows:280px auto}
   .prod-grid{grid-template-columns:1fr 1fr}
   .prod-grid .pcard:nth-child(3n){border-right:var(--b)}
@@ -369,8 +367,8 @@ img{max-width:100%}
 }
 @media (max-width:560px){
   .nav-top{padding:8px 16px}
-  .nav-links{justify-content:flex-start;gap:16px;overflow-x:auto;padding:10px 16px;white-space:nowrap}
-  .nav-btn.partner-btn{display:none}
+  .nav-links{justify-content:space-between;gap:12px;padding:10px 16px;white-space:nowrap}
+  .nav-brand{font-size:15px}
   .hero-text,.page-head,.section,.pt-l,.pt-r,.ythirst,.pd-info,.two-col>.main,.two-col>.aside,.confirm,.tier,.pd-story>div{padding-left:16px;padding-right:16px}
   .filter-bar{padding:12px 16px}
   .hero-h1{font-size:30px}
@@ -386,9 +384,9 @@ img{max-width:100%}
   .value{border-right:none!important;border-bottom:var(--b)}
   .value:last-child{border-bottom:none}
   .grid-2{grid-template-columns:1fr}
-  .ft-row4{grid-template-columns:1fr 1fr}
-  .ft-cell4:nth-child(2){border-right:none}
-  .ft-cell4:nth-child(-n+2){border-bottom:var(--b)}
+  .ft-row4{grid-template-columns:1fr}
+  .ft-cell4{border-right:none;border-bottom:var(--b)}
+  .ft-cell4:last-child{border-bottom:none}
   .ft-cell{padding:13px 16px}
   .order-id{font-size:22px}
 }
@@ -397,3 +395,42 @@ img{max-width:100%}
 .hcard-strip-gold.static{position:static;border-top:var(--b);backdrop-filter:none;background:var(--gold);padding:14px 12px}
 .edit-cap.static{position:static;border-top:none;backdrop-filter:none}
 .cap-green.static{background:var(--green)}
+
+/* ── Readability pass (10 Oct 2026) ──
+   The mockup's body copy was 11–13px grey on cream; these raise it to
+   comfortable sizes and darker greys. Later rules override the ones above. */
+:root{--muted:#46413A}
+.hero-sub{font-size:16px;color:#3A3530;max-width:420px}
+.page-lede{font-size:16px}
+.prose{font-size:16px}
+.value-ds{font-size:14.5px}
+.value-nm{font-size:17px}
+.pcard-pr{font-size:14px;color:#4A453E}
+.cap-text{font-size:13px}
+.strip-label{font-size:14px}
+.strip-stat-lbl{font-size:12px}
+.yt-eye{font-size:12.5px;color:rgba(242,237,228,0.8)}
+.yt-note{font-size:16px;color:rgba(242,237,228,0.88)}
+.yt-lbl{font-size:14px;color:rgba(242,237,228,0.82)}
+.yt-funding{font-size:13px}
+.pt-sub{font-size:16px}
+.pt-ds{font-size:13px}
+.tier-ds{font-size:15px}
+.eyebrow{font-size:12.5px}
+.note-box{font-size:14.5px}
+.field-hint{font-size:13.5px}
+.line-meta{font-size:14px}
+.sum-items{font-size:14.5px}
+.sum-row{font-size:15px}
+.nav-links a{font-size:13.5px}
+.nav-btn{font-size:13px}
+.badge{font-size:12px}
+.ft-cell{font-size:13px}
+.ft-cell4{font-size:12.5px}
+.ft-copy{font-size:12px;color:#5E5850}
+.chip{font-size:13.5px}
+.cookie{font-size:14px}
+
+/* Big prices: the ₦ sign in the body face (see components/Naira.tsx). */
+.naira{font-family:var(--font-body),'Barlow',sans-serif;font-weight:500;font-size:0.7em;vertical-align:0.22em;margin-right:2px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}

@@ -36,11 +36,15 @@ export const productSchema = z.object({
         size: requiredText(40, "Size"),
         price: nairaAmount.refine((p) => Number(p) > 0, "Price must be more than zero."),
         isAvailable: z.boolean(),
+        imageUrl: z.string().max(500).nullable().optional(),
       }),
     )
     .min(1, "Add at least one flavour and size.")
     .max(60),
   sortOrder: z.number().int().min(0).max(9999).optional(),
+}).refine((p) => p.variants.every((v) => !v.imageUrl || p.images.includes(v.imageUrl)), {
+  message: "A flavour’s photo must be one of this product’s photos.",
+  path: ["variants"],
 });
 export type ProductInput = z.infer<typeof productSchema>;
 

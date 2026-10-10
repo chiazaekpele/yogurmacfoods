@@ -27,7 +27,7 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
           images: p.images,
           isFeatured: p.isFeatured,
           isActive: p.isActive,
-          variants: p.variants.map((x) => ({ id: x.id, flavour: x.flavour, size: x.size, price: x.price.toString(), isAvailable: x.isAvailable })),
+          variants: p.variants.map((x) => ({ id: x.id, flavour: x.flavour, size: x.size, price: x.price.toString(), isAvailable: x.isAvailable, imageUrl: x.imageUrl })),
         }}
       />
     </div>

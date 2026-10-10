@@ -8,8 +8,6 @@ const LINKS = [
   { href: "/products", label: "Products" },
   { href: "/our-story", label: "Our Story" },
   { href: "/ythirst", label: "Ythirst Project" },
-  { href: "/our-story#values", label: "Health & Values" },
-  { href: "/partner", label: "Partner with us" },
 ];
 
 export function Nav() {
@@ -18,9 +16,6 @@ export function Nav() {
   return (
     <nav className="nav" aria-label="Main">
       <div className="nav-top">
-        <Link className="nav-home" href="/" aria-label="Home">
-          🏠
-        </Link>
         <Link className="nav-brand" href="/">
           Yogurmac Foods
         </Link>
@@ -29,7 +24,7 @@ export function Nav() {
             Partner with us
           </Link>
           <Link className="nav-btn" href="/cart" aria-label={`Cart, ${count} item${count === 1 ? "" : "s"}`}>
-            🛍 Cart ({count})
+            Cart ({count})
           </Link>
         </div>
       </div>

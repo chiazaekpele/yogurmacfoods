@@ -22,7 +22,7 @@ type SeedProduct = {
   sortOrder: number;
   // Served from public/images/products until Cloudinary is set up.
   images: string[];
-  variants: { flavour: string; size: string; price: number }[];
+  variants: { flavour: string; size: string; price: number; imageUrl?: string }[];
 };
 
 // Product names, flavours and sizes follow the product photos Yogurmac supplied.
@@ -38,8 +38,8 @@ const PRODUCTS: SeedProduct[] = [
       "Thick, creamy natural Greek yogurt, strained and made fresh for your order. Choose sweetened (low sugar) or unsweetened (sugar free).",
     images: [`${IMG}/greek-yogurt-sweetened.jpg`, `${IMG}/greek-yogurt-unsweetened.jpg`],
     variants: [
-      { flavour: "Natural, sweetened", size: "500ml", price: 4500 },
-      { flavour: "Natural, unsweetened", size: "500ml", price: 4500 },
+      { flavour: "Natural, sweetened", size: "500ml", price: 4500, imageUrl: `${IMG}/greek-yogurt-sweetened.jpg` },
+      { flavour: "Natural, unsweetened", size: "500ml", price: 4500, imageUrl: `${IMG}/greek-yogurt-unsweetened.jpg` },
     ],
   },
   {
@@ -51,8 +51,8 @@ const PRODUCTS: SeedProduct[] = [
       "Layers of our Greek yogurt with fresh apple, coconut and crunchy granola. Keep it classic, or go indulgent with chocolate and peanuts.",
     images: [`${IMG}/parfait-classic.jpg`, `${IMG}/parfait-chocolate.jpg`],
     variants: [
-      { flavour: "Classic (apple, coconut & granola)", size: "Cup", price: 3500 },
-      { flavour: "Chocolate & peanut", size: "Cup", price: 4000 },
+      { flavour: "Classic (apple, coconut & granola)", size: "Cup", price: 3500, imageUrl: `${IMG}/parfait-classic.jpg` },
+      { flavour: "Chocolate & peanut", size: "Cup", price: 4000, imageUrl: `${IMG}/parfait-chocolate.jpg` },
     ],
   },
   {
@@ -74,8 +74,8 @@ const PRODUCTS: SeedProduct[] = [
       "Clara’s Ridi bars: crunchy, seed-packed energy bars for steady energy through a busy Lagos day. Made in small batches, fresh to order.",
     images: [`${IMG}/ridi-peanut.jpg`, `${IMG}/ridi-chocolate.jpg`],
     variants: [
-      { flavour: "Peanut", size: "55g bar", price: 800 },
-      { flavour: "Chocolate", size: "55g bar", price: 900 },
+      { flavour: "Peanut", size: "55g bar", price: 800, imageUrl: `${IMG}/ridi-peanut.jpg` },
+      { flavour: "Chocolate", size: "55g bar", price: 900, imageUrl: `${IMG}/ridi-chocolate.jpg` },
     ],
   },
 ];

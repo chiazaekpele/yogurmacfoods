@@ -1,18 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/hooks/useCart";
-import { formatNaira } from "@/lib/money";
+import { Naira } from "./Naira";
 
-type Variant = { id: string; flavour: string; size: string; price: string; isAvailable: boolean };
+type Variant = { id: string; flavour: string; size: string; price: string; isAvailable: boolean; imageUrl: string | null };
 
 export function VariantPicker({
   product,
   variants,
+  onImage,
 }: {
   product: { name: string; slug: string; image: string | null };
   variants: Variant[];
+  // Called with the chosen option's photo so the gallery can show it.
+  onImage?: (url: string) => void;
 }) {
   const flavours = useMemo(() => [...new Set(variants.map((v) => v.flavour))], [variants]);
   const sizes = useMemo(() => [...new Set(variants.map((v) => v.size))], [variants]);
@@ -27,6 +30,11 @@ export function VariantPicker({
   const find = (f: string, s: string) => variants.find((v) => v.flavour === f && v.size === s);
   const selected = find(flavour, size);
   const canBuy = !!selected?.isAvailable;
+  const selectedImage = selected?.imageUrl ?? null;
+
+  useEffect(() => {
+    if (selectedImage) onImage?.(selectedImage);
+  }, [selectedImage, onImage]);
 
   // Choosing a flavour with no stock in the current size jumps to an available size.
   const chooseFlavour = (f: string) => {
@@ -43,7 +51,7 @@ export function VariantPicker({
   return (
     <>
       <div className="pd-price" aria-live="polite">
-        {selected && canBuy ? formatNaira(selected.price) : "Unavailable"}
+        {selected && canBuy ? <Naira value={selected.price} /> : "Unavailable"}
       </div>
 
       {flavours.length > 1 || flavours[0] ? (
@@ -122,7 +130,7 @@ export function VariantPicker({
               flavour: selected.flavour,
               size: selected.size,
               unitPrice: selected.price,
-              image: product.image,
+              image: selected.imageUrl ?? product.image,
               quantity,
             });
             setAdded(true);

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { formatNaira } from "@/lib/money";
 import { openPaystack } from "@/lib/paystack-inline";
 import { fieldErrors, subscribeSchema } from "@/lib/validation";
+import { Naira } from "./Naira";
 
 type Tier = { id: string; name: string; description: string; monthlyAmount: string };
 
@@ -58,7 +59,7 @@ export function SubscribeForm({ tiers, simulated }: { tiers: Tier[]; simulated: 
           <div className="tier" key={t.id} data-selected={t.id === tierId}>
             <div className="tier-nm">{t.name}</div>
             <div className="tier-amt">
-              {formatNaira(t.monthlyAmount)} <span>/ month</span>
+              <Naira value={t.monthlyAmount} /> <span>/ month</span>
             </div>
             <p className="tier-ds">{t.description}</p>
             <button

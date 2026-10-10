@@ -7,6 +7,7 @@ import { useCart } from "@/hooks/useCart";
 import { formatNaira, fromKobo, toKobo } from "@/lib/money";
 import { openPaystack } from "@/lib/paystack-inline";
 import { checkoutSchema, fieldErrors } from "@/lib/validation";
+import { Naira } from "./Naira";
 
 type Lga = { name: string; fee: string | null };
 
@@ -221,7 +222,9 @@ export function CheckoutForm({
         </div>
         <div className="sum-row total">
           <span>Total</span>
-          <span>{formatNaira(fromKobo(totalKobo))}</span>
+          <span>
+            <Naira value={fromKobo(totalKobo)} />
+          </span>
         </div>
         <button className="btn btn-block" type="submit" disabled={busy} style={{ marginTop: 16 }}>
           {busy ? "Please wait…" : "Place order & pay"}
