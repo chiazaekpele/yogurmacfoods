@@ -38,6 +38,11 @@ enum SubscriptionStatus {
   EXPIRED
 }
 
+enum DonationStatus {
+  PENDING
+  PAID
+}
+
 enum Role {
   ADMIN
   STAFF
@@ -271,6 +276,27 @@ model AuditLog {
   createdAt     DateTime @default(now())
 
   @@index([entityType, entityId, createdAt])
+}
+
+// One-time gift to the Ythirst project: ₦500 per child (confirmed 10 Oct 2026).
+// Created PENDING when Paystack is initialised; only the signed webhook marks it
+// PAID, and only PAID donations count towards the live counter.
+model Donation {
+  id         String         @id @default(cuid())
+  // YMG-YYYYMMDD-XXXXX, also the Paystack reference.
+  reference  String         @unique
+  donorName  String?
+  donorEmail String
+  children   Int
+  amount     Decimal        @db.Decimal(12, 2)
+  amountPaid Decimal?       @db.Decimal(12, 2)
+  status     DonationStatus @default(PENDING)
+  emailSent  Boolean        @default(false)
+  paidAt     DateTime?
+  createdAt  DateTime       @default(now())
+
+  @@index([status, paidAt])
+  @@index([createdAt])
 }
 
 // ── Staff portal (docs/yogurmac-staff-prd.md §8, TRD §5.4) ────────────────────

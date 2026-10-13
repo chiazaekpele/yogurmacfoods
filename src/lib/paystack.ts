@@ -55,12 +55,6 @@ export function initializeTransaction(params: {
   });
 }
 
-// Create or update the customer so subscription webhooks carry their name.
-export async function upsertCustomer(email: string, fullName: string): Promise<void> {
-  const [first_name, ...rest] = fullName.trim().split(/\s+/);
-  await paystack("/customer", { email, first_name, last_name: rest.join(" ") || undefined });
-}
-
 export function verifyPaystackSignature(rawBody: string, signature: string | null, secret: string): boolean {
   if (!signature) return false;
   const expected = createHmac("sha512", secret).update(rawBody).digest("hex");

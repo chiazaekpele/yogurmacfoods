@@ -17,7 +17,7 @@ export function Footer() {
           Ythirst project
         </Link>
         <Link className="ft-cell" href="/partner">
-          Partner with us
+          Give to Ythirst
         </Link>
       </div>
       <div className="ft-row4">

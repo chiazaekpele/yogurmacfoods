@@ -69,7 +69,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
           <div className="eyebrow">Our story</div>
           <p className="prose">
             Yogurmac Foods is a faith-driven indigenous food brand. We make premium Greek yogurt, granola and energy bars
-            in Lagos, fresh for every order, and our partners fund the Ythirst Community Project.
+            in Lagos, fresh for every order, and donations fund the Ythirst Community Project.
           </p>
           <p style={{ marginTop: 12 }}>
             <Link className="link" href="/our-story">

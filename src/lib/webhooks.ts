@@ -1,6 +1,6 @@
 import { Prisma } from "@/generated/prisma/client";
 import { db } from "./db";
-import { sendOrderConfirmation, sendSubscriptionThanks } from "./email";
+import { sendDonationThanks, sendOrderConfirmation, sendSubscriptionThanks } from "./email";
 import { fromKobo, toKobo } from "./money";
 
 // Processing for Paystack webhook events (TRD §7.3, §8). The HTTP route verifies
@@ -57,6 +57,7 @@ type DispatchResult = { effects: SideEffect[]; note?: string; parked?: boolean }
 async function dispatch(e: PaystackEvent): Promise<DispatchResult> {
   switch (e.event) {
     case "charge.success":
+      if (e.data?.metadata?.type === "donation") return donationCharge(e.data);
       return isSubscriptionCharge(e.data) ? subscriptionCharge(e.data) : orderCharge(e.data);
     case "subscription.create":
       return subscriptionCreate(e.data);
@@ -182,7 +183,55 @@ export async function sendOrderEmail(orderDbId: string): Promise<{ ok: boolean; 
   }
 }
 
-// ── Donation subscriptions ────────────────────────────────────────────────────
+// ── One-time donations (₦500 per child) ───────────────────────────────────────
+
+async function donationCharge(data: Record<string, any>): Promise<DispatchResult> {
+  const reference = String(data.reference ?? "");
+  const donation = await db.donation.findUnique({ where: { reference } });
+  if (!donation) {
+    await alert("ORPHAN_DONATION", `Paystack donation ${reference} (${fromKobo(Number(data.amount ?? 0))} NGN) has no matching record.`, reference);
+    return { effects: [], note: "no donation record" };
+  }
+  if (donation.status === "PAID") return { effects: [donationEmailEffect(donation.id)], note: "donation already paid" };
+
+  const expected = toKobo(donation.amount);
+  if (data.status !== "success" || data.currency !== "NGN" || Number(data.amount) !== expected) {
+    await alert(
+      "PAYMENT_MISMATCH",
+      `Donation ${reference} did not match: status ${data.status}, ${data.currency} ${data.amount} kobo, expected NGN ${expected} kobo.`,
+      reference,
+    );
+    return { effects: [], note: "payment mismatch" };
+  }
+
+  await db.$transaction(async (tx) => {
+    const { count } = await tx.donation.updateMany({
+      where: { id: donation.id, status: "PENDING" },
+      data: { status: "PAID", amountPaid: fromKobo(Number(data.amount)), paidAt: data.paid_at ? new Date(data.paid_at) : new Date() },
+    });
+    if (count) {
+      await tx.auditLog.create({
+        data: { action: "DONATION_PAID", entityType: "Donation", entityId: donation.id, newValue: { reference, children: donation.children, amount: donation.amount.toString() } },
+      });
+    }
+  });
+  return { effects: [donationEmailEffect(donation.id)] };
+}
+
+function donationEmailEffect(donationId: string): SideEffect {
+  return async () => {
+    const d = await db.donation.findUnique({ where: { id: donationId } });
+    if (!d || d.emailSent) return;
+    try {
+      await sendDonationThanks({ ...d, amount: d.amount.toString() });
+      await db.donation.update({ where: { id: d.id }, data: { emailSent: true } });
+    } catch (err) {
+      console.error(`Donation thank-you email failed for ${d.reference}:`, err);
+    }
+  };
+}
+
+// ── Donation subscriptions (legacy monthly tiers) ───────────────────────────── ────────────────────────────────────────────────────
 
 async function subscriptionCreate(data: Record<string, any>): Promise<DispatchResult> {
   const planCode = data.plan?.plan_code;

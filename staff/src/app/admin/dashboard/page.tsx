@@ -6,7 +6,8 @@ import { StatusBadge } from "@/components/Status";
 import { SubmitButton } from "@/components/SubmitButton";
 import { db } from "@/lib/db";
 import { formatDateTime, lagosDate, lagosDayStart } from "@/lib/lagos-time";
-import { formatNaira, fromKobo, toKobo } from "@/lib/money";
+import { donationSummary } from "@/lib/donations";
+import { formatNaira } from "@/lib/money";
 import { STATUS_LABELS, STATUS_ORDER } from "@/lib/order-status";
 import { requireRole } from "@/lib/session";
 import { resendConfirmation, resolveAlert } from "./actions";
@@ -21,10 +22,10 @@ export default async function AdminDashboard({ searchParams }: PageProps<"/admin
   const startOfToday = lagosDayStart(today);
   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
 
-  const [todayAgg, byStatus, activeSubs, recent, failedEmails, alerts, onDuty, activeStaff, setbacks] = await Promise.all([
+  const [todayAgg, byStatus, giving, recent, failedEmails, alerts, onDuty, activeStaff, setbacks] = await Promise.all([
     db.order.aggregate({ where: { createdAt: { gte: startOfToday } }, _count: true, _sum: { total: true } }),
     db.order.groupBy({ by: ["status"], _count: true }),
-    db.subscription.findMany({ where: { status: "ACTIVE" }, select: { tier: { select: { monthlyAmount: true } } } }),
+    donationSummary(),
     db.order.findMany({ orderBy: { createdAt: "desc" }, take: 10, select: { id: true, orderId: true, customerName: true, lga: true, total: true, status: true, createdAt: true } }),
     // Give the webhook a few minutes to send before calling it failed.
     db.order.findMany({ where: { emailSent: false, createdAt: { lt: fiveMinutesAgo } }, orderBy: { createdAt: "desc" }, take: 20, select: { id: true, orderId: true, customerEmail: true, emailError: true, createdAt: true } }),
@@ -40,7 +41,6 @@ export default async function AdminDashboard({ searchParams }: PageProps<"/admin
   ]);
 
   const statusCount = Object.fromEntries(byStatus.map((s) => [s.status, s._count]));
-  const monthlyDonationsKobo = activeSubs.reduce((sum, s) => sum + toKobo(s.tier.monthlyAmount), 0);
 
   return (
     <div className="stack">
@@ -53,11 +53,11 @@ export default async function AdminDashboard({ searchParams }: PageProps<"/admin
           <div className="stat-value">{todayAgg._count}</div>
           <div className="stat-sub" style={{ color: "#CFC6B6" }}>{formatNaira(todayAgg._sum.total?.toString() ?? "0")} revenue</div>
         </div>
-        <div className="card">
-          <div className="stat-label">Active partners</div>
-          <div className="stat-value">{activeSubs.length}</div>
-          <div className="stat-sub">{formatNaira(fromKobo(monthlyDonationsKobo))} a month</div>
-        </div>
+        <Link href="/admin/donations" className="card" style={{ textDecoration: "none" }}>
+          <div className="stat-label">Given this month</div>
+          <div className="stat-value">{giving.month.children.toLocaleString("en-NG")}</div>
+          <div className="stat-sub">children · {formatNaira(giving.month.raised)}</div>
+        </Link>
         <div className="card">
           <div className="stat-label">Staff on duty</div>
           <div className="stat-value">

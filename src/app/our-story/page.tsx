@@ -43,7 +43,7 @@ export default function OurStoryPage() {
           <ul>
             <li><strong>Faith-driven</strong> — integrity and care in everything we make.</li>
             <li><strong>Indigenous quality</strong> — premium products, proudly Lagos-made.</li>
-            <li><strong>Community impact</strong> — our partners fund the Ythirst Community Project.</li>
+            <li><strong>Community impact</strong> — donations fund the Ythirst Community Project.</li>
             <li><strong>Wholesome nutrition</strong> — real ingredients, made fresh for every order.</li>
           </ul>
         </div>
@@ -52,7 +52,7 @@ export default function OurStoryPage() {
       <section className="ythirst">
         <div className="yt-eye">The Ythirst Community Project</div>
         <h2 className="yt-h2">Supporting young children in need across Lagos.</h2>
-        <p className="yt-note">Ythirst is our community outreach, funded entirely by partner subscriptions — never by product sales.</p>
+        <p className="yt-note">Ythirst is our community outreach, funded entirely by donations — never by product sales.</p>
         <Link className="yt-lnk" href="/ythirst">
           Discover Ythirst →
         </Link>

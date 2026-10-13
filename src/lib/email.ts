@@ -129,3 +129,22 @@ export async function sendSubscriptionThanks(s: {
     idempotencyKey: `subscription-thanks-${s.subscriptionCode}`,
   });
 }
+
+export async function sendDonationThanks(d: { reference: string; donorName: string | null; donorEmail: string; children: number; amount: string }): Promise<void> {
+  const who = d.donorName ? `Hi ${d.donorName},` : "Hello,";
+  const kids = `${d.children} ${d.children === 1 ? "child" : "children"}`;
+  const text = [
+    who,
+    ``,
+    `Thank you for your gift of ${formatNaira(d.amount)} to the Ythirst Community Project. At ₦500 per child, that supports ${kids} in Lagos.`,
+    ``,
+    `Your reference is ${d.reference}.`,
+  ].join("\n");
+  const html = layout(
+    "Thank you for giving",
+    `<p>${escape(who)}</p>
+<p>Thank you for your gift of <strong>${formatNaira(d.amount)}</strong> to the Ythirst Community Project. At ₦500 per child, that supports <strong>${kids}</strong> in Lagos.</p>
+<p style="font-size:13px;color:#555">Your reference is ${d.reference}.</p>`,
+  );
+  await send({ to: d.donorEmail, subject: "Thank you for supporting Ythirst", html, text, idempotencyKey: `donation-thanks-${d.reference}` });
+}

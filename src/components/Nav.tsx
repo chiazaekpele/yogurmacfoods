@@ -21,7 +21,7 @@ export function Nav() {
         </Link>
         <div className="nav-actions">
           <Link className="nav-btn partner-btn" href="/partner">
-            Partner with us
+            Give
           </Link>
           <Link className="nav-btn" href="/cart" aria-label={`Cart, ${count} item${count === 1 ? "" : "s"}`}>
             Cart ({count})

@@ -5,7 +5,7 @@ import { LAGOS_LGAS } from "../src/lib/lgas";
 
 // Seed data for local development and first setup.
 //
-// PLACEHOLDERS — every price, delivery fee, tier amount and impact number below
+// PLACEHOLDERS — every price, delivery fee and impact number below
 // is a stand-in. Products, flavours and sizes follow the supplied product photos.
 // Yogurmac must confirm the real values; the admin edits them in the staff
 // portal. Re-running this script does not overwrite edits.
@@ -89,12 +89,6 @@ const SAMPLE_FEES: Record<string, number> = {
   Ikorodu: 3500, "Ibeju-Lekki": 4500, Epe: 5000, Badagry: 5000,
 };
 
-const TIERS = [
-  { name: "Seed Partner", description: "Feeds one child per quarter", monthlyAmount: 5000, sortOrder: 1 },
-  { name: "Growth Partner", description: "Feeds a classroom per quarter", monthlyAmount: 20000, sortOrder: 2 },
-  { name: "Legacy Partner", description: "Funds a full school visit", monthlyAmount: 50000, sortOrder: 3 },
-];
-
 const IMPACT = [
   { key: "children_reached", label: "Children reached", value: 900, sortOrder: 1 },
   { key: "campaigns_run", label: "Outreach campaigns", value: 18, sortOrder: 2 },
@@ -138,11 +132,8 @@ async function main() {
     });
   }
 
-  if ((await db.subscriptionTier.count()) === 0) {
-    await db.subscriptionTier.createMany({ data: TIERS });
-  }
 
-  console.log("Seeded sample products, LGA fees, tiers and impact stats (placeholders).");
+  console.log("Seeded sample products, LGA fees and impact stats (placeholders).");
 }
 
 main()

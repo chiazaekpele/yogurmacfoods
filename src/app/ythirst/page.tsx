@@ -17,14 +17,14 @@ export default function YthirstPage() {
         <h1 className="yt-h2" style={{ fontSize: 44 }}>
           Supporting young children in need across Lagos.
         </h1>
-        <div className="yt-funding">Funded entirely by our partner subscriptions &amp; donations — not product sales</div>
+        <div className="yt-funding">Funded entirely by donations — ₦500 supports one child — not product sales</div>
         <ImpactStats />
       </section>
 
       <section className="section">
         <h2 className="section-h2">What an outreach looks like</h2>
         <div className="prose">
-          <p>Our team visits schools and communities across Lagos to support young children in need. Every visit is funded by the people and organisations who partner with us monthly.</p>
+          <p>Our team visits schools and communities across Lagos to support young children in need. Every visit is funded by people and organisations who give: every ₦500 supports one child.</p>
         </div>
         <div className="note-box" style={{ marginTop: 16 }}>
           Full Ythirst mission narrative and outreach description to be supplied by Yogurmac.
@@ -33,12 +33,12 @@ export default function YthirstPage() {
 
       <div className="partner">
         <div className="pt-l">
-          <h2 className="pt-h2">Join the mission. Become a partner.</h2>
-          <p className="pt-sub">A monthly gift funds outreach visits, school by school.</p>
+          <h2 className="pt-h2">Join the mission. Give to a child.</h2>
+          <p className="pt-sub">Every ₦500 supports one child. Give once, for as many children as you like.</p>
         </div>
         <div className="pt-r" style={{ justifyContent: "center" }}>
           <Link className="btn-pt" href="/partner">
-            Choose a giving tier →
+            Give now →
           </Link>
         </div>
       </div>

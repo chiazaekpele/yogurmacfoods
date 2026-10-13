@@ -88,23 +88,3 @@ export async function periodBreakdowns(range: Range) {
     variants,
   };
 }
-
-export async function donationSummary() {
-  const today = lagosDate();
-  const monthStart = lagosDayStart(new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)));
-  const yearStart = lagosDayStart(new Date(Date.UTC(today.getUTCFullYear(), 0, 1)));
-  const [active, newThisMonth, month, year, tiers] = await Promise.all([
-    db.subscription.count({ where: { status: "ACTIVE" } }),
-    db.subscription.count({ where: { startDate: { gte: monthStart } } }),
-    db.subscriptionPayment.aggregate({ where: { status: "success", paidAt: { gte: monthStart } }, _sum: { amount: true } }),
-    db.subscriptionPayment.aggregate({ where: { status: "success", paidAt: { gte: yearStart } }, _sum: { amount: true } }),
-    db.subscriptionTier.findMany({ orderBy: { monthlyAmount: "asc" }, include: { subscriptions: { where: { status: "ACTIVE" }, select: { id: true } } } }),
-  ]);
-  return {
-    active,
-    newThisMonth,
-    monthKobo: toKobo(month._sum.amount ?? "0"),
-    yearKobo: toKobo(year._sum.amount ?? "0"),
-    tiers: tiers.map((t) => ({ name: t.name, count: t.subscriptions.length })),
-  };
-}

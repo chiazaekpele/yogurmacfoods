@@ -25,7 +25,7 @@ both migrations applied, catalogue seeded with the four photographed products.
 
 | Service | What to do | Env vars |
 |---|---|---|
-| Paystack | Business account must be verified for live keys. Webhook URL: `https://<shop domain>/api/webhooks/paystack` (test and live). IP list from Paystack's webhook docs. | Shop: `PAYSTACK_SECRET_KEY`, `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`, `PAYSTACK_WEBHOOK_IPS`. Staff: `PAYSTACK_SECRET_KEY` (creates tier plans) |
+| Paystack | Business account must be verified for live keys. Webhook URL: `https://<shop domain>/api/webhooks/paystack` (test and live): it confirms both orders and donations. IP list from Paystack's webhook docs. | Shop only: `PAYSTACK_SECRET_KEY`, `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`, `PAYSTACK_WEBHOOK_IPS` |
 | Resend | Add domain, put SPF/DKIM/DMARC records in HostAfrica DNS, wait for "verified" | Both apps: `RESEND_API_KEY`, `EMAIL_FROM` |
 | Upstash | One Redis database used by both apps | Both apps: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` |
 | Cloudinary | Optional for launch: the current photos ship with the shop. Needed for the admin to upload new photos. | Staff: `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` |
@@ -60,7 +60,7 @@ Shop:
 - [ ] Test-mode card payment: lands on the order page with the address shown; confirmation email arrives with a "View your order" link
 - [ ] Same order URL without `?t=` shows the order but no address
 - [ ] Bank-transfer attempt, then cancel the popup: back on checkout with details kept
-- [ ] Partner subscription: first payment, thank-you email, cancellation from the Paystack receipt
+- [ ] Test-mode donation for 2 children (₦1,000): thank-you page, receipt email, and the live counter on /partner and the homepage goes up by 2 within seconds
 - [ ] Webhook retry: Paystack dashboard → resend event → still exactly one order
 
 Staff portal (all of this passed locally against Neon on 10 Oct 2026):
@@ -79,13 +79,13 @@ Then:
 - Real prices for the four products, and the Cranola jar size (shown as "Jar")
 - Any other products, flavours or sizes beyond the ones in the photos
 - Delivery fee for each of the 20 LGAs
-- Donation tier names and monthly amounts (each becomes a Paystack plan)
 - Ythirst impact numbers
-- Ythirst outreach and kitchen photos (those slots are hidden until they exist)
+- More Ythirst outreach photos and a kitchen photo (the editorial strip's Ythirst and kitchen slots)
 - Our Story / Ythirst copy approval
 - Privacy policy: data retention period and sign-off (remove the "Draft" notice in `src/app/privacy-policy/page.tsx`)
 - A real contact inbox for `NEXT_PUBLIC_CONTACT_EMAIL`
 - HostAfrica DNS access and Paystack business account status
 
-The owner can enter prices, fees, tiers and impact numbers in the staff portal once
-signed in; no code change is needed.
+The owner can enter prices, fees and impact numbers in the staff portal once signed
+in; no code change is needed. Giving is fixed at ₦500 per child (confirmed 10 Oct 2026),
+one-time gifts; the live counter counts only Paystack-confirmed donations.

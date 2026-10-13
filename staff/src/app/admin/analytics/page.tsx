@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DailyBars, RankBars } from "@/components/Charts";
 import { PageHead } from "@/components/PageHead";
-import { dailySeries, donationSummary, periodBreakdowns, resolveRange, revenueSummary } from "@/lib/analytics";
+import { dailySeries, periodBreakdowns, resolveRange, revenueSummary } from "@/lib/analytics";
+import { donationSummary } from "@/lib/donations";
 import { formatNaira, fromKobo, toKobo } from "@/lib/money";
 import { STATUS_LABELS, STATUS_ORDER } from "@/lib/order-status";
 import { requireRole } from "@/lib/session";
@@ -130,28 +131,23 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
       </div>
 
       <div>
-        <h2 className="h2">Partners and donations</h2>
-        <div className="grid grid-4">
-          <div className="card">
-            <div className="stat-label">Active partners</div>
-            <div className="stat-value">{donations.active}</div>
-          </div>
-          <div className="card">
-            <div className="stat-label">New this month</div>
-            <div className="stat-value">{donations.newThisMonth}</div>
-          </div>
-          <div className="card">
-            <div className="stat-label">Donations this month</div>
-            <div className="stat-value">{naira(donations.monthKobo)}</div>
-          </div>
-          <div className="card">
-            <div className="stat-label">Donations this year</div>
-            <div className="stat-value">{naira(donations.yearKobo)}</div>
-          </div>
-        </div>
-        <div className="card" style={{ marginTop: 16 }}>
-          <h2 className="h2">Active partners by tier</h2>
-          <RankBars rows={donations.tiers.map((t) => ({ label: t.name, value: t.count, display: String(t.count) }))} empty="No tiers yet." />
+        <h2 className="h2">Donations (₦500 per child)</h2>
+        <div className="grid grid-3">
+          {(
+            [
+              ["This month", donations.month],
+              ["This year", donations.year],
+              ["All time", donations.all],
+            ] as const
+          ).map(([label, t]) => (
+            <div className="card" key={label}>
+              <div className="stat-label">{label}</div>
+              <div className="stat-value">{t.children.toLocaleString("en-NG")} children</div>
+              <div className="stat-sub">
+                {formatNaira(t.raised)} from {t.gifts} gift{t.gifts === 1 ? "" : "s"}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

@@ -57,11 +57,3 @@ export async function getProductBySlug(slug: string) {
 export async function getImpactStats() {
   return db.impactStat.findMany({ orderBy: { sortOrder: "asc" } });
 }
-
-export async function listActiveTiers() {
-  const tiers = await db.subscriptionTier.findMany({
-    where: { isActive: true },
-    orderBy: [{ sortOrder: "asc" }, { monthlyAmount: "asc" }],
-  });
-  return tiers.map((t) => ({ ...t, monthlyAmount: t.monthlyAmount.toString() }));
-}

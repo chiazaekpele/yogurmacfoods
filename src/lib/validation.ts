@@ -35,11 +35,18 @@ export const checkoutSchema = z.strictObject({
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 
-export const subscribeSchema = z.strictObject({
-  tierId: z.string().min(1).max(64),
-  subscriberName: name,
-  subscriberEmail: email,
+export const MAX_CHILDREN_PER_GIFT = 2000;
+
+export const donateSchema = z.strictObject({
+  children: z
+    .number({ message: "Choose how many children to support" })
+    .int("Choose a whole number of children")
+    .min(1, "Support at least one child")
+    .max(MAX_CHILDREN_PER_GIFT, `For gifts above ${MAX_CHILDREN_PER_GIFT} children, please contact us`),
+  donorName: z.string().trim().max(100).optional().transform((v) => v || undefined),
+  donorEmail: email,
 });
+export type DonateInput = z.infer<typeof donateSchema>;
 
 export function fieldErrors(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};

@@ -18,14 +18,14 @@ export default function PrivacyPolicyPage() {
         </div>
         <div className="prose">
           <h2>What we collect</h2>
-          <p>When you place an order we collect your full name, phone number, email address and delivery address (LGA, exact address and an optional landmark). When you become a partner we collect your name and email address.</p>
+          <p>When you place an order we collect your full name, phone number, email address and delivery address (LGA, exact address and an optional landmark). When you give to Ythirst we collect your email address and, if you choose to give it, your name.</p>
           <p>Payments are processed by Paystack. We never see or store your card details.</p>
 
           <h2>Why we collect it</h2>
           <ul>
             <li>To make and deliver your order, including our rider calling you on delivery.</li>
             <li>To send your order confirmation and delivery updates by email or WhatsApp.</li>
-            <li>To manage partner subscriptions and send confirmation of your gifts.</li>
+            <li>To process your donation and send you a receipt.</li>
           </ul>
           <p>We do not sell your data, and we do not use it for advertising. Our production staff only see what needs to be made, never your contact details.</p>
 

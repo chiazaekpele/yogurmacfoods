@@ -1,4 +1,3 @@
-import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -13,11 +12,10 @@ import { handlePaystackEvent } from "@/lib/webhooks";
 
 const bodySchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("order"), orderId: z.string() }),
-  z.object({ type: z.literal("subscription"), tierId: z.string(), name: z.string().min(2), email: z.email() }),
+  z.object({ type: z.literal("donation"), reference: z.string() }),
 ]);
 
 const fakeId = () => Math.floor(Math.random() * 1e9);
-const code = (prefix: string) => `${prefix}_sim_${randomBytes(6).toString("hex")}`;
 
 export async function POST(req: Request) {
   if (!isSimulatedPayments()) return new NextResponse(null, { status: 404 });
@@ -44,42 +42,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, redirect: orderPath(pending.orderId) });
   }
 
-  const tier = await db.subscriptionTier.findFirst({ where: { id: body.tierId, isActive: true } });
-  if (!tier) return NextResponse.json({ error: "Unknown tier" }, { status: 404 });
-  // Simulated tiers have no real Paystack plan yet, so give them a local one.
-  const planCode = tier.paystackPlanCode ?? `PLN_sim_${tier.id}`;
-  if (!tier.paystackPlanCode) {
-    await db.subscriptionTier.update({ where: { id: tier.id }, data: { paystackPlanCode: planCode } });
-  }
-
-  const [first_name, ...rest] = body.name.trim().split(/\s+/);
-  const customer = { customer_code: code("CUS"), email: body.email, first_name, last_name: rest.join(" ") };
-  const next = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-  // Paystack can send these in either order; send the charge first to exercise that path.
+  const donation = await db.donation.findUnique({ where: { reference: body.reference } });
+  if (!donation) return NextResponse.json({ error: "Unknown donation" }, { status: 404 });
   await handlePaystackEvent({
     event: "charge.success",
     data: {
       id: fakeId(),
-      reference: code("ref"),
+      reference: donation.reference,
       status: "success",
       currency: "NGN",
-      amount: toKobo(tier.monthlyAmount),
+      amount: toKobo(donation.amount),
       paid_at: new Date().toISOString(),
-      customer,
-      plan: { plan_code: planCode },
-      metadata: { type: "subscription", tierId: tier.id },
+      customer: { email: donation.donorEmail },
+      metadata: { type: "donation", reference: donation.reference, children: donation.children },
     },
   });
-  await handlePaystackEvent({
-    event: "subscription.create",
-    data: {
-      id: fakeId(),
-      subscription_code: code("SUB"),
-      customer,
-      plan: { plan_code: planCode },
-      next_payment_date: next,
-      createdAt: new Date().toISOString(),
-    },
-  });
-  return NextResponse.json({ ok: true, redirect: `/partner/thank-you?tier=${encodeURIComponent(tier.name)}` });
+  return NextResponse.json({ ok: true, redirect: `/partner/thank-you?ref=${donation.reference}` });
 }

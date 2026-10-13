@@ -1,17 +1,25 @@
 import Link from "next/link";
 import { ImpactStats } from "@/components/ImpactStats";
+import { LiveCounter } from "@/components/LiveCounter";
+import { Naira } from "@/components/Naira";
+import { HeroCarousel, type HeroSlide } from "@/components/HeroCarousel";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductImage } from "@/components/ProductImage";
-import { getImpactStats, gridClass, listActiveTiers, listProducts } from "@/lib/catalog";
-import { Naira } from "@/components/Naira";
+import { gridClass, listProducts } from "@/lib/catalog";
+import { getGivingTotals } from "@/lib/giving";
 
 // Products and prices refresh every 60s; admin edits also trigger an immediate refresh.
 export const revalidate = 60;
 
-// Homepage photos (public/images/products). There are no Ythirst outreach
-// photos yet, so those slots show their caption only, with no empty image area.
+// Homepage photos (public/images). The editorial Ythirst slot shows its caption
+// only, with no empty image area.
+const HERO_SLIDES: HeroSlide[] = [
+  { src: "/images/products/parfait-classic.jpg", alt: "Yogurmac Greek yogurt parfait with apple, coconut and granola", href: "/products", position: "center 8%" },
+  { src: "/images/hero/ythirst-outreach.jpg", alt: "Children at a Ythirst outreach making heart shapes with their hands", href: "/ythirst", position: "center 45%" },
+  { src: "/images/hero/ythirst-900-children.jpg", alt: "900 children and counting, supported through the Ythirst Project", href: "/ythirst" },
+];
+
 const IMAGES = {
-  heroProduct: "/images/products/parfait-classic.jpg",
   editorialProduct: "/images/products/greek-yogurt-unsweetened.jpg",
   editorialLifestyle: "/images/products/parfait-chocolate.jpg",
   editorialKitchen: "/images/products/ridi-chocolate.jpg",
@@ -20,17 +28,12 @@ const IMAGES = {
 const VALUES = [
   { name: "Faith-driven", desc: "A business built on faith, run with integrity and care." },
   { name: "Indigenous quality", desc: "Premium products made right here in Lagos, Nigeria." },
-  { name: "Community impact", desc: "Partner giving funds the Ythirst Community Project." },
+  { name: "Community impact", desc: "Donations fund the Ythirst Community Project." },
   { name: "Wholesome nutrition", desc: "Real ingredients, made fresh for every single order." },
 ];
 
 export default async function Home() {
-  const [products, stats, tiers] = await Promise.all([
-    listProducts({ featuredOnly: true }),
-    getImpactStats(),
-    listActiveTiers(),
-  ]);
-  const children = stats.find((s) => s.key === "children_reached");
+  const [products, giving] = await Promise.all([listProducts({ featuredOnly: true }), getGivingTotals()]);
 
   return (
     <>
@@ -48,39 +51,14 @@ export default async function Home() {
               Shop now →
             </Link>
             <Link className="hero-cta" href="/partner">
-              Partner with us
+              Give to a child
             </Link>
           </div>
         </div>
         <div className="hero-cards">
           <div className="hcard-img">
-            <ProductImage
-              src={IMAGES.heroProduct}
-              alt="Yogurmac Greek yogurt parfait with apple, coconut and granola"
-              label="[ Product hero photography ]"
-              tone="ph-product"
-              position="center 8%"
-              eager
-              sizes="(max-width: 860px) 100vw, 47vw"
-            />
-            <div className="hcard-strip-dark">
-              <span className="strip-label">Made fresh. To your order. Every time.</span>
-              <span className="badge b-gray">Products</span>
-            </div>
+            <HeroCarousel slides={HERO_SLIDES} sizes="(max-width: 860px) 100vw, 47vw" />
           </div>
-          {children && (
-            <Link href="/ythirst" className="hcard-strip-gold static" style={{ textDecoration: "none" }}>
-              <div>
-                <div className="strip-stat-num">{children.value.toLocaleString("en-NG")}</div>
-                <div className="strip-stat-lbl">
-                  Children supported
-                  <br />
-                  through the Ythirst Project
-                </div>
-              </div>
-              <span className="badge b-dark">Ythirst</span>
-            </Link>
-          )}
         </div>
       </div>
 
@@ -127,10 +105,10 @@ export default async function Home() {
         <h2 className="yt-h2" id="yt-h">
           Supporting young children in need across Lagos.
         </h2>
-        <div className="yt-funding">Funded entirely by our partner subscriptions &amp; donations — not product sales</div>
+        <div className="yt-funding">Funded entirely by donations — ₦500 supports one child — not product sales</div>
         <p className="yt-note">
           Through Ythirst, Yogurmac visits schools and communities across Lagos to support young children in need. Every
-          outreach is paid for by our partners.
+          outreach is paid for by people who give.
         </p>
         <ImpactStats />
         <Link className="yt-lnk" href="/ythirst">
@@ -140,27 +118,19 @@ export default async function Home() {
 
       <div className="partner">
         <div className="pt-l">
-          <h2 className="pt-h2">Subscribe monthly. Support a child in need.</h2>
+          <h2 className="pt-h2">
+            <Naira value={500} /> supports one child.
+          </h2>
           <p className="pt-sub">
-            Our Ythirst outreaches are funded entirely by people and organisations who choose to give monthly. Product
-            purchases are separate — this is purely a mission-driven giving programme.
+            Give once, for as many children as you like. Every gift funds Ythirst outreach to children in need across Lagos.
+            Product purchases are separate; this is purely mission-driven giving.
           </p>
+          <Link className="btn-pt" href="/partner" style={{ alignSelf: "flex-start", marginTop: 18 }}>
+            Give now →
+          </Link>
         </div>
         <div className="pt-r">
-          {tiers.slice(0, 3).map((t) => (
-            <div className="pt-tier" key={t.id}>
-              <div>
-                <div className="pt-nm">{t.name}</div>
-                <div className="pt-ds">{t.description}</div>
-              </div>
-              <div className="pt-amt">
-                <Naira value={t.monthlyAmount} />/mo
-              </div>
-            </div>
-          ))}
-          <Link className="btn-pt" href="/partner">
-            Become a partner →
-          </Link>
+          <LiveCounter initial={giving} />
         </div>
       </div>
 
