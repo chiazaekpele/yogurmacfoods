@@ -45,7 +45,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
-      include: { items: { select: { productName: true, flavour: true, size: true, quantity: true } } },
+      include: { items: { select: { productName: true, flavour: true, size: true, quantity: true, days: true } } },
     }),
     db.order.count({ where }),
   ]);
@@ -125,7 +125,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
                 <td className="small" style={{ whiteSpace: "nowrap" }}>{o.customerPhone}</td>
                 <td>{o.lga}</td>
                 <td className="small">
-                  {o.items.map((i) => `${i.quantity}× ${i.productName} (${i.flavour}, ${i.size})`).join("; ")}
+                  {o.items.map((i) => `${i.quantity}× ${i.productName} (${i.flavour}, ${i.size})${i.days > 1 ? `, daily ×${i.days} days` : ""}`).join("; ")}
                 </td>
                 <td className="num">{formatNaira(o.total.toString())}</td>
                 <td>

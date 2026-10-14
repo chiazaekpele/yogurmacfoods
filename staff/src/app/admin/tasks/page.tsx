@@ -8,11 +8,11 @@ import { db } from "@/lib/db";
 import { formatDateTime, formatDay, lagosDate } from "@/lib/lagos-time";
 import { requireRole } from "@/lib/session";
 import { createTask } from "./actions";
+import { TASK_LABELS as LABELS } from "@/lib/labels";
 
 export const metadata: Metadata = { title: "Tasks" };
 
 const STATUSES: TaskStatus[] = ["PENDING", "IN_PROGRESS", "COMPLETED", "BLOCKED"];
-const LABELS = { PENDING: "Pending", IN_PROGRESS: "In progress", COMPLETED: "Completed", BLOCKED: "Blocked" } as const;
 
 export default async function AdminTasksPage({ searchParams }: PageProps<"/admin/tasks">) {
   await requireRole("ADMIN");

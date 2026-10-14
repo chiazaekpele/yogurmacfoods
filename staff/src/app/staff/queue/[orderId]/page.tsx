@@ -9,16 +9,11 @@ import { formatDateTime } from "@/lib/lagos-time";
 import { requireRole } from "@/lib/session";
 import { activeClaim, orderForStaff } from "@/lib/staff-orders";
 import { claim, ready, reportSetback } from "../actions";
+import { SETBACK_LABELS } from "@/lib/labels";
 
 export const metadata: Metadata = { title: "Order" };
 
-const CATEGORIES = [
-  ["INGREDIENT_SHORTAGE", "Ingredient shortage"],
-  ["EQUIPMENT_ISSUE", "Equipment issue"],
-  ["PACKAGING_ISSUE", "Packaging issue"],
-  ["OTHER", "Other"],
-] as const;
-const LABEL = Object.fromEntries(CATEGORIES) as Record<string, string>;
+const CATEGORIES = Object.entries(SETBACK_LABELS);
 
 export default async function StaffOrderPage({ params, searchParams }: PageProps<"/staff/queue/[orderId]">) {
   const staff = await requireRole("STAFF");
@@ -84,7 +79,7 @@ export default async function StaffOrderPage({ params, searchParams }: PageProps
               <h2 className="h2">Your setback reports</h2>
               {order.setbacks.map((s) => (
                 <div key={s.id} className="card" style={{ marginBottom: 8 }}>
-                  <strong>{LABEL[s.category]}</strong> <span className="small muted">{formatDateTime(s.createdAt)}</span>
+                  <strong>{SETBACK_LABELS[s.category]}</strong> <span className="small muted">{formatDateTime(s.createdAt)}</span>
                   <p className="pre">{s.description}</p>
                 </div>
               ))}

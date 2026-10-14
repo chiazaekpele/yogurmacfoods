@@ -202,16 +202,16 @@ export function ProductForm({ productId, initial, uploadsEnabled }: { productId:
       </div>
 
       <div className="card">
-        <h2 className="h2">Flavours, sizes and prices</h2>
+        <h2 className="h2">{v.category === "WELLNESS_BOX" ? "Tiers and prices" : "Flavours, sizes and prices"}</h2>
         <p className="hint">Each row is one thing a customer can buy. Price changes don’t affect past orders.</p>
         {v.variants.map((x, i) => (
           <div className="variant-row" key={x.key}>
             <div className="field">
-              <label htmlFor={`flavour-${x.key}`}>Flavour</label>
+              <label htmlFor={`flavour-${x.key}`}>{v.category === "WELLNESS_BOX" ? "Tier" : "Flavour"}</label>
               <input id={`flavour-${x.key}`} type="text" required maxLength={60} value={x.flavour} onChange={(e) => setVariant(i, { flavour: e.target.value })} />
             </div>
             <div className="field" style={{ marginTop: 0 }}>
-              <label htmlFor={`size-${x.key}`}>Size</label>
+              <label htmlFor={`size-${x.key}`}>{v.category === "WELLNESS_BOX" ? "Box" : "Size"}</label>
               <input id={`size-${x.key}`} type="text" required maxLength={40} value={x.size} onChange={(e) => setVariant(i, { size: e.target.value })} />
             </div>
             <div className="field" style={{ marginTop: 0 }}>
@@ -249,7 +249,7 @@ export function ProductForm({ productId, initial, uploadsEnabled }: { productId:
           style={{ marginTop: 12 }}
           onClick={() => set("variants", [...v.variants, { key: key(), flavour: "", size: "", price: "", isAvailable: true, imageUrl: null }])}
         >
-          Add flavour and size
+          {v.category === "WELLNESS_BOX" ? "Add tier" : "Add flavour and size"}
         </button>
       </div>
 

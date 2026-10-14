@@ -13,10 +13,9 @@ import { nextAdminStatus, previousStatus, whatsappDeliveryLink } from "@/lib/ord
 import { requireRole } from "@/lib/session";
 import { moveOrder } from "./actions";
 import { resendConfirmation } from "../../dashboard/actions";
+import { SETBACK_LABELS } from "@/lib/labels";
 
 export const metadata: Metadata = { title: "Order" };
-
-const SETBACK_LABELS = { INGREDIENT_SHORTAGE: "Ingredient shortage", EQUIPMENT_ISSUE: "Equipment issue", PACKAGING_ISSUE: "Packaging issue", OTHER: "Other" } as const;
 
 function describe(action: string, prev: unknown, next: unknown): string {
   const p = (prev ?? {}) as { status?: keyof typeof STATUS_LABELS };
@@ -177,9 +176,12 @@ export default async function OrderDetail({ params, searchParams }: PageProps<"/
                 <td>{i.productName}</td>
                 <td>{i.flavour}</td>
                 <td>{i.size}</td>
-                <td className="num">{i.quantity}</td>
+                <td className="num">
+                  {i.quantity}
+                  {i.days > 1 && <div className="small muted">daily × {i.days} days</div>}
+                </td>
                 <td className="num">{formatNaira(i.unitPrice.toString())}</td>
-                <td className="num">{formatNaira(i.unitPrice.mul(i.quantity).toString())}</td>
+                <td className="num">{formatNaira(i.unitPrice.mul(i.quantity * i.days).toString())}</td>
               </tr>
             ))}
           </tbody>

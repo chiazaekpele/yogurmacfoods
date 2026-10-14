@@ -33,7 +33,3 @@ export async function rateLimit(name: string, ip: string, limit: Limit): Promise
   memory.set(key, recent);
   return true;
 }
-
-export function clientIp(req: Request): string {
-  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-}

@@ -24,7 +24,7 @@ export default async function StaffAnnouncements() {
         return (
           <Link key={a.id} href={`/staff/announcements/${a.id}`} className={`card ${unread ? "unread" : ""}`} style={{ display: "block", textDecoration: "none" }}>
             <div className="row-between">
-              <strong style={{ fontFamily: "var(--cond)", fontSize: 18, textTransform: "uppercase" }}>{a.title}</strong>
+              <strong style={{ fontSize: 18 }}>{a.title}</strong>
               {unread && <span className="badge b-in_production">New</span>}
             </div>
             <div className="small muted">{formatDateTime(a.scheduledFor)}</div>

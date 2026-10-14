@@ -7,10 +7,9 @@ import { formatDay, lagosDate } from "@/lib/lagos-time";
 import { reviewStatus } from "@/lib/review-status";
 import { requireRole } from "@/lib/session";
 import { activeClaim } from "@/lib/staff-orders";
+import { TASK_LABELS } from "@/lib/labels";
 
 export const metadata: Metadata = { title: "Today" };
-
-const TASK_LABELS = { PENDING: "Pending", IN_PROGRESS: "In progress", COMPLETED: "Completed", BLOCKED: "Blocked" } as const;
 
 export default async function StaffDashboard() {
   const staff = await requireRole("STAFF");

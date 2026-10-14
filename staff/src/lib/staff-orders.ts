@@ -7,7 +7,7 @@ export const STAFF_ORDER_SELECT = {
   orderId: true,
   status: true,
   createdAt: true,
-  items: { select: { id: true, productName: true, flavour: true, size: true, quantity: true } },
+  items: { select: { id: true, productName: true, flavour: true, size: true, quantity: true, days: true } },
 } as const;
 
 export const CUSTOMER_FIELDS = ["customerName", "customerEmail", "customerPhone", "exactAddress", "landmark", "lga"] as const;

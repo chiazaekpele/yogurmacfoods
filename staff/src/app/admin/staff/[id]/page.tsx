@@ -8,11 +8,9 @@ import { db } from "@/lib/db";
 import { formatDate, formatDateTime, formatDay, lagosDate } from "@/lib/lagos-time";
 import { requireRole } from "@/lib/session";
 import { deactivateStaff, resendInvite, saveAdminNote } from "../actions";
+import { SETBACK_LABELS, TASK_LABELS } from "@/lib/labels";
 
 export const metadata: Metadata = { title: "Staff member" };
-
-const SETBACK_LABELS = { INGREDIENT_SHORTAGE: "Ingredient shortage", EQUIPMENT_ISSUE: "Equipment issue", PACKAGING_ISSUE: "Packaging issue", OTHER: "Other" } as const;
-const TASK_LABELS = { PENDING: "Pending", IN_PROGRESS: "In progress", COMPLETED: "Completed", BLOCKED: "Blocked" } as const;
 
 export default async function StaffDetail({ params, searchParams }: PageProps<"/admin/staff/[id]">) {
   await requireRole("ADMIN");

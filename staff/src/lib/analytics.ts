@@ -70,12 +70,12 @@ export async function periodBreakdowns(range: Range) {
     db.order.groupBy({ by: ["status"], where, _count: true }),
     db.order.groupBy({ by: ["lga"], where, _count: true, _sum: { total: true }, orderBy: { _count: { lga: "desc" } } }),
     db.$queryRaw<{ name: string; units: bigint; revenue: string }[]>`
-      SELECT i."productName" AS name, sum(i.quantity) AS units, sum(i.quantity * i."unitPrice")::text AS revenue
+      SELECT i."productName" AS name, sum(i.quantity * i.days) AS units, sum(i.quantity * i.days * i."unitPrice")::text AS revenue
       FROM "OrderItem" i JOIN "Order" o ON o.id = i."orderId"
       WHERE o."createdAt" >= ${where.createdAt.gte} AND o."createdAt" < ${where.createdAt.lt}
       GROUP BY 1`,
     db.$queryRaw<{ name: string; flavour: string; size: string; units: bigint }[]>`
-      SELECT i."productName" AS name, i.flavour, i.size, sum(i.quantity) AS units
+      SELECT i."productName" AS name, i.flavour, i.size, sum(i.quantity * i.days) AS units
       FROM "OrderItem" i JOIN "Order" o ON o.id = i."orderId"
       WHERE o."createdAt" >= ${where.createdAt.gte} AND o."createdAt" < ${where.createdAt.lt}
       GROUP BY 1, 2, 3 ORDER BY 4 DESC LIMIT 10`,

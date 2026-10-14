@@ -1,6 +1,6 @@
 // Browser-safe product helpers (no database imports).
-export const CATEGORIES = ["YOGURT", "GRANOLA", "ENERGY_BAR"] as const;
-export const CATEGORY_LABELS = { YOGURT: "Greek Yogurt", GRANOLA: "Granola", ENERGY_BAR: "Energy Bars" } as const;
+export const CATEGORIES = ["YOGURT", "GRANOLA", "ENERGY_BAR", "WELLNESS_BOX"] as const;
+export const CATEGORY_LABELS = { YOGURT: "Greek Yogurt", GRANOLA: "Granola", ENERGY_BAR: "Energy Bars", WELLNESS_BOX: "Wellness Box" } as const;
 
 export const slugify = (s: string) =>
   s

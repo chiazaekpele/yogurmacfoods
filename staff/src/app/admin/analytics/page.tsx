@@ -3,7 +3,7 @@ import Link from "next/link";
 import { DailyBars, RankBars } from "@/components/Charts";
 import { PageHead } from "@/components/PageHead";
 import { dailySeries, periodBreakdowns, resolveRange, revenueSummary } from "@/lib/analytics";
-import { donationSummary } from "@/lib/donations";
+import { boxSummary } from "@/lib/donations";
 import { formatNaira, fromKobo, toKobo } from "@/lib/money";
 import { STATUS_LABELS, STATUS_ORDER } from "@/lib/order-status";
 import { requireRole } from "@/lib/session";
@@ -24,7 +24,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
   const s = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : undefined);
   const range = resolveRange(s("range"), s("from"), s("to"));
 
-  const [summary, daily, breakdown, donations] = await Promise.all([revenueSummary(), dailySeries(range), periodBreakdowns(range), donationSummary()]);
+  const [summary, daily, breakdown, donations] = await Promise.all([revenueSummary(), dailySeries(range), periodBreakdowns(range), boxSummary()]);
   const periodOrders = daily.reduce((n, d) => n + d.orders, 0);
   const periodProduct = daily.reduce((n, d) => n + d.productKobo, 0);
   const periodTotal = daily.reduce((n, d) => n + d.totalKobo, 0);
@@ -131,7 +131,8 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
       </div>
 
       <div>
-        <h2 className="h2">Donations (₦500 per child)</h2>
+        <h2 className="h2">Wellness boxes sold</h2>
+        <p className="lede" style={{ marginTop: 0 }}>Each day of a daily box counts as one box. This is the number on the shop’s Business Impact page.</p>
         <div className="grid grid-3">
           {(
             [
@@ -139,13 +140,10 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
               ["This year", donations.year],
               ["All time", donations.all],
             ] as const
-          ).map(([label, t]) => (
+          ).map(([label, n]) => (
             <div className="card" key={label}>
               <div className="stat-label">{label}</div>
-              <div className="stat-value">{t.children.toLocaleString("en-NG")} children</div>
-              <div className="stat-sub">
-                {formatNaira(t.raised)} from {t.gifts} gift{t.gifts === 1 ? "" : "s"}
-              </div>
+              <div className="stat-value">{n.toLocaleString("en-NG")}</div>
             </div>
           ))}
         </div>

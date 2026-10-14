@@ -6,15 +6,14 @@ import { StatusBadge } from "@/components/Status";
 import { SubmitButton } from "@/components/SubmitButton";
 import { db } from "@/lib/db";
 import { formatDateTime, lagosDate, lagosDayStart } from "@/lib/lagos-time";
-import { donationSummary } from "@/lib/donations";
+import { boxSummary } from "@/lib/donations";
 import { formatNaira } from "@/lib/money";
 import { STATUS_LABELS, STATUS_ORDER } from "@/lib/order-status";
 import { requireRole } from "@/lib/session";
 import { resendConfirmation, resolveAlert } from "./actions";
+import { SETBACK_LABELS } from "@/lib/labels";
 
 export const metadata: Metadata = { title: "Dashboard" };
-
-const SETBACK_LABELS = { INGREDIENT_SHORTAGE: "Ingredient shortage", EQUIPMENT_ISSUE: "Equipment issue", PACKAGING_ISSUE: "Packaging issue", OTHER: "Other" } as const;
 
 export default async function AdminDashboard({ searchParams }: PageProps<"/admin/dashboard">) {
   const admin = await requireRole("ADMIN");
@@ -25,7 +24,7 @@ export default async function AdminDashboard({ searchParams }: PageProps<"/admin
   const [todayAgg, byStatus, giving, recent, failedEmails, alerts, onDuty, activeStaff, setbacks] = await Promise.all([
     db.order.aggregate({ where: { createdAt: { gte: startOfToday } }, _count: true, _sum: { total: true } }),
     db.order.groupBy({ by: ["status"], _count: true }),
-    donationSummary(),
+    boxSummary(),
     db.order.findMany({ orderBy: { createdAt: "desc" }, take: 10, select: { id: true, orderId: true, customerName: true, lga: true, total: true, status: true, createdAt: true } }),
     // Give the webhook a few minutes to send before calling it failed.
     db.order.findMany({ where: { emailSent: false, createdAt: { lt: fiveMinutesAgo } }, orderBy: { createdAt: "desc" }, take: 20, select: { id: true, orderId: true, customerEmail: true, emailError: true, createdAt: true } }),
@@ -53,10 +52,10 @@ export default async function AdminDashboard({ searchParams }: PageProps<"/admin
           <div className="stat-value">{todayAgg._count}</div>
           <div className="stat-sub" style={{ color: "#CFC6B6" }}>{formatNaira(todayAgg._sum.total?.toString() ?? "0")} revenue</div>
         </div>
-        <Link href="/admin/donations" className="card" style={{ textDecoration: "none" }}>
-          <div className="stat-label">Given this month</div>
-          <div className="stat-value">{giving.month.children.toLocaleString("en-NG")}</div>
-          <div className="stat-sub">children · {formatNaira(giving.month.raised)}</div>
+        <Link href="/admin/analytics" className="card" style={{ textDecoration: "none" }}>
+          <div className="stat-label">Wellness boxes this month</div>
+          <div className="stat-value">{giving.month.toLocaleString("en-NG")}</div>
+          <div className="stat-sub">{giving.all.toLocaleString("en-NG")} sold in total</div>
         </Link>
         <div className="card">
           <div className="stat-label">Staff on duty</div>

@@ -1,25 +1,28 @@
 import { db } from "./db";
 import { lagosDate, lagosDayStart } from "./lagos-time";
-import { fromKobo, toKobo } from "./money";
 
-// One-time gifts at ₦500 per child (confirmed 10 Oct 2026). Only PAID
-// (webhook-confirmed) donations count.
+// Wellness boxes sold (13 Oct 2026): the same figure as the shop's live counter.
+// 25% of profits fund Ythirst; the site can't see profit, so it counts boxes.
+// Each day of a daily box counts as one box.
 
-export type DonationTotals = { raised: string; children: number; gifts: number };
-
-async function totalsSince(since?: Date): Promise<DonationTotals> {
-  const agg = await db.donation.aggregate({
-    where: { status: "PAID", ...(since ? { paidAt: { gte: since } } : {}) },
-    _sum: { amount: true, children: true },
-    _count: true,
-  });
-  return { raised: fromKobo(toKobo(agg._sum.amount ?? "0")), children: agg._sum.children ?? 0, gifts: agg._count };
+async function boxesSince(since?: Date): Promise<number> {
+  const [row] = since
+    ? await db.$queryRaw<{ boxes: bigint | null }[]>`
+        SELECT sum(i.quantity * i.days) AS boxes FROM "OrderItem" i
+        JOIN "Order" o ON o.id = i."orderId"
+        JOIN "ProductVariant" v ON v.id = i."variantId" JOIN "Product" p ON p.id = v."productId"
+        WHERE p.category = 'WELLNESS_BOX' AND o."createdAt" >= ${since}`
+    : await db.$queryRaw<{ boxes: bigint | null }[]>`
+        SELECT sum(i.quantity * i.days) AS boxes FROM "OrderItem" i
+        JOIN "ProductVariant" v ON v.id = i."variantId" JOIN "Product" p ON p.id = v."productId"
+        WHERE p.category = 'WELLNESS_BOX'`;
+  return Number(row?.boxes ?? 0);
 }
 
-export async function donationSummary() {
+export async function boxSummary() {
   const today = lagosDate();
   const monthStart = lagosDayStart(new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)));
   const yearStart = lagosDayStart(new Date(Date.UTC(today.getUTCFullYear(), 0, 1)));
-  const [all, month, year] = await Promise.all([totalsSince(), totalsSince(monthStart), totalsSince(yearStart)]);
+  const [all, month, year] = await Promise.all([boxesSince(), boxesSince(monthStart), boxesSince(yearStart)]);
   return { all, month, year };
 }

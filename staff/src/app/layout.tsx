@@ -1,14 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow, Barlow_Condensed } from "next/font/google";
+import { Fredoka } from "next/font/google";
 import "./globals.css";
 
-const condensed = Barlow_Condensed({
-  subsets: ["latin"],
-  weight: ["400", "700", "800", "900"],
-  variable: "--font-condensed",
-  display: "swap",
-});
-const body = Barlow({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-body", display: "swap" });
+// Same typeface as the shop.
+const fredoka = Fredoka({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-fredoka", display: "swap" });
 
 // Every page depends on who is signed in; nothing is prerendered.
 export const dynamic = "force-dynamic";
@@ -18,11 +13,11 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export const viewport: Viewport = { themeColor: "#F2EDE4" };
+export const viewport: Viewport = { themeColor: "#FFFFFF" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-NG" className={`${condensed.variable} ${body.variable}`}>
+    <html lang="en-NG" className={fredoka.variable}>
       <body>{children}</body>
     </html>
   );
