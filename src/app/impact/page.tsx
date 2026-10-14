@@ -85,7 +85,7 @@ export default async function ImpactPage() {
       <section className="section" id="boxes">
         <div className="section-head">
           <div>
-            <span className="kicker">Wellness subscription boxes</span>
+            <span className="kicker">Wellness boxes</span>
             <h2 className="section-h2">Nourishment for you, your family or your team.</h2>
             <p className="lead">Order a box once, or have one delivered every day for as many days as you need.</p>
           </div>

@@ -14,7 +14,7 @@ type SideEffect = () => Promise<void>;
 
 export function dedupeKey(e: PaystackEvent): string {
   const d = e.data ?? {};
-  return `${e.event}:${d.id ?? d.subscription_code ?? d.reference ?? "unknown"}`;
+  return `${e.event}:${d.id ?? d.reference ?? "unknown"}`;
 }
 
 export async function handlePaystackEvent(e: PaystackEvent): Promise<void> {
@@ -166,8 +166,8 @@ function emailEffect(orderDbId: string): SideEffect {
   };
 }
 
-// Sends the confirmation once (emailSent guards repeats). Also used by the staff
-// portal's resend button via /api/internal/resend-confirmation.
+// Sends the confirmation once (emailSent guards repeats). Also used by the
+// admin's "Resend email" button.
 export async function sendOrderEmail(orderDbId: string): Promise<{ ok: boolean; error?: string }> {
   const order = await db.order.findUnique({ where: { id: orderDbId }, include: { items: true } });
   if (!order) return { ok: false, error: "Order not found." };

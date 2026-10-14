@@ -1,5 +1,5 @@
-/* Admin panel styles: the staff portal look, scoped under .adm so nothing
-   leaks into the shop (the shop's globals.css is loaded on every page). */
+/* Admin panel styles, scoped under .adm so nothing leaks into the shop
+   (the shop's globals.css is loaded on every page). */
 .adm *,.adm *::before,.adm *::after{box-sizing:border-box;margin:0;padding:0}
 .adm{--brand:#2340A8;
   --brand-dark:#1A2F80;
@@ -58,7 +58,6 @@
 .adm .muted{color:var(--muted)}
 .adm .small{font-size:13.5px}
 .adm .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;letter-spacing:.2px}
-.adm .pre{white-space:pre-wrap}
 .adm .stack>*+*{margin-top:20px}
 .adm .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .adm .row-between{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
@@ -121,9 +120,7 @@
 .adm .b-delivered{background:var(--soft);color:var(--muted)}
 .adm .b-on{background:var(--leaf-50);border-color:#CDE6BD;color:var(--leaf-dark)}
 .adm .b-off{background:var(--soft);color:var(--muted)}
-.adm .b-warn,.adm .b-blocked{background:#FDECEA;border-color:#F5C6BF;color:var(--red)}
-.adm .b-pending{background:var(--soft);color:var(--muted)}
-.adm .b-completed{background:var(--leaf-50);border-color:#CDE6BD;color:var(--leaf-dark)}
+.adm .b-warn{background:#FDECEA;border-color:#F5C6BF;color:var(--red)}
 .adm .steps{display:flex;gap:6px;margin:6px 0 16px;flex-wrap:wrap}
 .adm .step{flex:1;min-width:110px;padding:9px 12px;border-radius:var(--radius-btn);font-weight:500;font-size:13.5px;background:#fff;border:1px solid var(--line);color:var(--muted)}
 .adm .step.done{background:var(--leaf-50);border-color:#CDE6BD;color:var(--leaf-dark)}

@@ -37,7 +37,7 @@ both migrations applied, catalogue seeded with the four photographed products.
 changing `ORDER_LINK_SECRET` stops addresses showing on links in emails already sent.
 
 - [ ] Shop: `ORDER_LINK_SECRET`, `CRON_SECRET`
-- [ ] Shop: `REVALIDATE_SECRET`, `NEON_AUTH_COOKIE_SECRET`, plus `NEON_AUTH_BASE_URL=https://ep-billowing-thunder-b5lkvp0n.neonauth.c-7.us-east-2.aws.neon.tech/neondb/auth` and `ADMIN_SIGNUP_CODE`
+- [ ] Shop: `NEON_AUTH_COOKIE_SECRET`, plus `NEON_AUTH_BASE_URL=https://ep-billowing-thunder-b5lkvp0n.neonauth.c-7.us-east-2.aws.neon.tech/neondb/auth` and `ADMIN_SIGNUP_CODE`
 
 ## 5. Vercel (functions in `cle1` next to Neon)
 

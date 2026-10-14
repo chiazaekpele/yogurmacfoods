@@ -94,7 +94,7 @@ export default async function Home() {
       <section className="section">
         <div className="panel panel-give">
           <div>
-            <span className="kicker">Wellness subscription boxes</span>
+            <span className="kicker">Wellness boxes</span>
             <h2 className="section-h2">Nourishment for you, your family or your team.</h2>
             <p className="lead">
               Solo, family, corporate and period care boxes, ordered once or delivered every day for as many days as you need.

@@ -5,8 +5,7 @@ import { db } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 // Daily Vercel Cron (TRD §12): deletes checkouts that were never paid, or whose
-// order has long been created, once they pass expiresAt. The TRD puts this on the
-// staff portal; it lives here until the portal is deployed. Vercel sends
+// order has long been created, once they pass expiresAt. Vercel sends
 // "Authorization: Bearer $CRON_SECRET" with every cron request.
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;

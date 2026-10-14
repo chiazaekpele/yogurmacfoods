@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export const POSITIONS = [
+const POSITIONS = [
   { value: "", label: "Middle" },
   { value: "center top", label: "Top" },
   { value: "center 25%", label: "Upper middle" },

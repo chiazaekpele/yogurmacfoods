@@ -5,7 +5,7 @@ import { generateOrderId } from "./order-id";
 import { getShippingRates } from "./shipping";
 import type { CheckoutInput } from "./validation";
 
-export const PENDING_CHECKOUT_TTL_MS = 48 * 60 * 60 * 1000;
+const PENDING_CHECKOUT_TTL_MS = 48 * 60 * 60 * 1000;
 
 export type PricedLine = {
   variantId: string;

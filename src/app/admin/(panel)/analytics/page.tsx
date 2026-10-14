@@ -24,7 +24,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
   const s = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : undefined);
   const range = resolveRange(s("range"), s("from"), s("to"));
 
-  const [summary, daily, breakdown, donations] = await Promise.all([revenueSummary(), dailySeries(range), periodBreakdowns(range), boxSummary()]);
+  const [summary, daily, breakdown, boxes] = await Promise.all([revenueSummary(), dailySeries(range), periodBreakdowns(range), boxSummary()]);
   const periodOrders = daily.reduce((n, d) => n + d.orders, 0);
   const periodProduct = daily.reduce((n, d) => n + d.productKobo, 0);
   const periodTotal = daily.reduce((n, d) => n + d.totalKobo, 0);
@@ -136,9 +136,9 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
         <div className="grid grid-3">
           {(
             [
-              ["This month", donations.month],
-              ["This year", donations.year],
-              ["All time", donations.all],
+              ["This month", boxes.month],
+              ["This year", boxes.year],
+              ["All time", boxes.all],
             ] as const
           ).map(([label, n]) => (
             <div className="card" key={label}>

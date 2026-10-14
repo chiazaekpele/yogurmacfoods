@@ -29,14 +29,6 @@ export function addDays(day: Date, n: number): Date {
   return new Date(day.getTime() + n * DAY_MS);
 }
 
-export function addMonths(day: Date, n: number): Date {
-  const d = new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth() + n, 1));
-  // Clamp to the month's last day (31 Jan + 1 month = 28/29 Feb).
-  const last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
-  d.setUTCDate(Math.min(day.getUTCDate(), last));
-  return d;
-}
-
 export function isoDay(day: Date): string {
   return day.toISOString().slice(0, 10);
 }
@@ -50,9 +42,6 @@ const dateTimeFmt = new Intl.DateTimeFormat("en-NG", {
   hour: "numeric",
   minute: "2-digit",
 });
-// @db.Date values are UTC midnight; format them without a timezone shift.
-const plainDateFmt = new Intl.DateTimeFormat("en-NG", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short", year: "numeric" });
 
 export const formatDate = (d: Date) => dateFmt.format(d);
 export const formatDateTime = (d: Date) => dateTimeFmt.format(d);
-export const formatDay = (d: Date) => plainDateFmt.format(d);

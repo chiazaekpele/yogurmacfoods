@@ -15,9 +15,8 @@ describe("verifyPaystackSignature", () => {
 });
 
 describe("dedupeKey", () => {
-  it("prefers the event id, then subscription code, then reference", () => {
+  it("prefers the event id, then the reference", () => {
     expect(dedupeKey({ event: "charge.success", data: { id: 7, reference: "r" } })).toBe("charge.success:7");
-    expect(dedupeKey({ event: "subscription.disable", data: { subscription_code: "SUB_1" } })).toBe("subscription.disable:SUB_1");
     expect(dedupeKey({ event: "x", data: { reference: "r" } })).toBe("x:r");
   });
 });
