@@ -6,7 +6,6 @@ export function ProductImage({
   src,
   alt,
   label,
-  tone = "ph-generic",
   eager,
   sizes = "(max-width: 560px) 100vw, 33vw",
   position = "center",
@@ -14,7 +13,6 @@ export function ProductImage({
   src: string | null | undefined;
   alt: string;
   label?: string;
-  tone?: string;
   // Above the fold (possibly the LCP image): load immediately, at high priority.
   // Replaces the `priority` prop, deprecated in Next.js 16.
   eager?: boolean;
@@ -23,7 +21,7 @@ export function ProductImage({
 }) {
   if (!src) {
     return (
-      <div className={`img-ph img-fill ${tone}`} role="img" aria-label={alt}>
+      <div className="img-ph img-fill" role="img" aria-label={alt}>
         {label ?? alt}
       </div>
     );

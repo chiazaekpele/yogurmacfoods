@@ -3,8 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Icon } from "./Icon";
 
-export type HeroSlide = { src: string; alt: string; href: string; position?: string };
+// fit "contain" shows the whole image on `background` (for graphics with text).
+export type HeroSlide = { src: string; alt: string; href: string; position?: string; fit?: "cover" | "contain"; background?: string };
 
 const AUTOPLAY_MS = 6000;
 
@@ -84,13 +86,14 @@ export function HeroCarousel({ slides, sizes }: { slides: HeroSlide[]; sizes: st
             aria-roledescription="slide"
             aria-label={`${i + 1} of ${slides.length}: ${s.alt}`}
             tabIndex={i === index ? 0 : -1}
+            style={s.background ? { background: s.background } : undefined}
           >
             <Image
               src={s.src}
               alt={s.alt}
               fill
               sizes={sizes}
-              style={{ objectFit: "cover", objectPosition: s.position ?? "center" }}
+              style={{ objectFit: s.fit ?? "cover", objectPosition: s.position ?? "center" }}
               loading={i === 0 ? "eager" : "lazy"}
               fetchPriority={i === 0 ? "high" : undefined}
             />
@@ -101,7 +104,7 @@ export function HeroCarousel({ slides, sizes }: { slides: HeroSlide[]; sizes: st
       {slides.length > 1 && (
         <>
           <button type="button" className="hc-arrow hc-prev" aria-label="Previous slide" disabled={index === 0} onClick={() => goManual(index - 1)}>
-            ←
+            <Icon name="prev" size={20} />
           </button>
           <button
             type="button"
@@ -110,7 +113,7 @@ export function HeroCarousel({ slides, sizes }: { slides: HeroSlide[]; sizes: st
             disabled={index === slides.length - 1}
             onClick={() => goManual(index + 1)}
           >
-            →
+            <Icon name="next" size={20} />
           </button>
           <div className="hc-dots">
             {slides.map((s, i) => (

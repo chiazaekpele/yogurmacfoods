@@ -3,18 +3,14 @@
 import { useState } from "react";
 import { ProductImage } from "./ProductImage";
 
-const TONES = { YOGURT: "ph-yogurt", GRANOLA: "ph-granola", ENERGY_BAR: "ph-bar" } as const;
-
 export function ProductGallery({
   name,
   images,
-  category,
   index: controlled,
   onIndex,
 }: {
   name: string;
   images: string[];
-  category: keyof typeof TONES;
   // Optional: let a parent drive the shown photo (e.g. from the chosen flavour).
   index?: number;
   onIndex?: (i: number) => void;
@@ -28,8 +24,7 @@ export function ProductGallery({
         <ProductImage
           src={images[index]}
           alt={name}
-          label={`[ ${name} ]`}
-          tone={TONES[category]}
+          label={name}
           eager
           sizes="(max-width: 860px) 100vw, 53vw"
         />

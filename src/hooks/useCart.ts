@@ -15,7 +15,14 @@ export type CartItem = {
   unitPrice: string; // naira, as shown when added
   image: string | null;
   quantity: number;
+  // Wellness boxes: one delivered each day for this many days (absent = 1).
+  days?: number;
 };
+
+export const MAX_DAYS = 365;
+export const daysOf = (i: Pick<CartItem, "days">) => i.days ?? 1;
+// A cart line is a variant bought for a number of days.
+export const lineKey = (i: Pick<CartItem, "variantId" | "days">) => `${i.variantId}:${daysOf(i)}`;
 
 const KEY = "yogurmac-cart-v1";
 const EMPTY: CartItem[] = [];
@@ -63,22 +70,21 @@ export function useCart() {
 
   const add = useCallback((item: CartItem) => {
     const current = read();
-    const existing = current.find((i) => i.variantId === item.variantId);
+    const key = lineKey(item);
+    const existing = current.find((i) => lineKey(i) === key);
     write(
       existing
-        ? current.map((i) =>
-            i.variantId === item.variantId ? { ...item, quantity: Math.min(99, i.quantity + item.quantity) } : i,
-          )
+        ? current.map((i) => (lineKey(i) === key ? { ...item, quantity: Math.min(99, i.quantity + item.quantity) } : i))
         : [...current, item],
     );
   }, []);
 
-  const setQuantity = useCallback((variantId: string, quantity: number) => {
+  const setQuantity = useCallback((key: string, quantity: number) => {
     const q = Math.max(1, Math.min(99, Math.floor(quantity) || 1));
-    write(read().map((i) => (i.variantId === variantId ? { ...i, quantity: q } : i)));
+    write(read().map((i) => (lineKey(i) === key ? { ...i, quantity: q } : i)));
   }, []);
 
-  const remove = useCallback((variantId: string) => write(read().filter((i) => i.variantId !== variantId)), []);
+  const remove = useCallback((key: string) => write(read().filter((i) => lineKey(i) !== key)), []);
   const clear = useCallback(() => write([]), []);
 
   // Apply server prices after a 409 price-drift response.
@@ -87,7 +93,7 @@ export function useCart() {
   }, []);
 
   const count = items.reduce((n, i) => n + i.quantity, 0);
-  const subtotalKobo = items.reduce((n, i) => n + toKobo(i.unitPrice) * i.quantity, 0);
+  const subtotalKobo = items.reduce((n, i) => n + toKobo(i.unitPrice) * i.quantity * daysOf(i), 0);
 
   return { items, count, subtotalKobo, add, setQuantity, remove, clear, reprice };
 }

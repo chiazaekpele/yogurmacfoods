@@ -64,20 +64,20 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
         footer={<div className="fresh-note">Made fresh to order — ready in 2–3 business days</div>}
       />
 
-      <div className="pd-story">
-        <div>
-          <div className="eyebrow">Our story</div>
-          <p className="prose">
-            Yogurmac Foods is a faith-driven indigenous food brand. We make premium Greek yogurt, granola and energy bars
-            in Lagos, fresh for every order, and donations fund the Ythirst Community Project.
-          </p>
-          <p style={{ marginTop: 12 }}>
-            <Link className="link" href="/our-story">
-              Read our story →
-            </Link>
-          </p>
+      <section className="section">
+        <div className="panel panel-soft">
+          <div>
+            <span className="kicker">Our story</span>
+            <p className="lead" style={{ marginTop: 8 }}>
+              Yogurmac Foods is a faith-driven indigenous food brand. We make premium Greek yogurt, granola and energy bars in Lagos,
+              fresh for every order, and 25% of our profits fund the Ythirst Project.
+            </p>
+          </div>
+          <Link className="btn btn-outline" href="/our-story">
+            Read our story
+          </Link>
         </div>
-      </div>
+      </section>
     </>
   );
 }

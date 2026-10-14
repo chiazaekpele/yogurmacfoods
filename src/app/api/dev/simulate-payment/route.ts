@@ -10,10 +10,7 @@ import { handlePaystackEvent } from "@/lib/webhooks";
 // producing the same events Paystack would send, and feeding them through the
 // real webhook processor. Disabled whenever Paystack keys exist or in production.
 
-const bodySchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("order"), orderId: z.string() }),
-  z.object({ type: z.literal("donation"), reference: z.string() }),
-]);
+const bodySchema = z.object({ type: z.literal("order"), orderId: z.string() });
 
 const fakeId = () => Math.floor(Math.random() * 1e9);
 
@@ -23,39 +20,20 @@ export async function POST(req: Request) {
   if (!parsed.success) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   const body = parsed.data;
 
-  if (body.type === "order") {
-    const pending = await db.pendingCheckout.findUnique({ where: { orderId: body.orderId } });
-    if (!pending) return NextResponse.json({ error: "Unknown order" }, { status: 404 });
-    await handlePaystackEvent({
-      event: "charge.success",
-      data: {
-        id: fakeId(),
-        reference: pending.orderId,
-        status: "success",
-        currency: "NGN",
-        amount: toKobo(pending.total),
-        paid_at: new Date().toISOString(),
-        customer: { email: pending.customerEmail },
-        metadata: { type: "order", orderId: pending.orderId },
-      },
-    });
-    return NextResponse.json({ ok: true, redirect: orderPath(pending.orderId) });
-  }
-
-  const donation = await db.donation.findUnique({ where: { reference: body.reference } });
-  if (!donation) return NextResponse.json({ error: "Unknown donation" }, { status: 404 });
+  const pending = await db.pendingCheckout.findUnique({ where: { orderId: body.orderId } });
+  if (!pending) return NextResponse.json({ error: "Unknown order" }, { status: 404 });
   await handlePaystackEvent({
     event: "charge.success",
     data: {
       id: fakeId(),
-      reference: donation.reference,
+      reference: pending.orderId,
       status: "success",
       currency: "NGN",
-      amount: toKobo(donation.amount),
+      amount: toKobo(pending.total),
       paid_at: new Date().toISOString(),
-      customer: { email: donation.donorEmail },
-      metadata: { type: "donation", reference: donation.reference, children: donation.children },
+      customer: { email: pending.customerEmail },
+      metadata: { type: "order", orderId: pending.orderId },
     },
   });
-  return NextResponse.json({ ok: true, redirect: `/partner/thank-you?ref=${donation.reference}` });
+  return NextResponse.json({ ok: true, redirect: orderPath(pending.orderId) });
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { CheckoutError, createPendingCheckout, quote } from "@/lib/checkout";
+import { getCustomer } from "@/lib/customer";
 import { db } from "@/lib/db";
 import { fromKobo } from "@/lib/money";
 import { orderPath } from "@/lib/order-link";
@@ -17,6 +18,10 @@ export async function POST(req: Request) {
   if (!(await rateLimit("checkout", clientIp(req), { requests: 10, windowSeconds: 60 }))) {
     return NextResponse.json({ error: "Too many attempts. Please wait a minute and try again." }, { status: 429 });
   }
+
+  // Paying requires an account (13 Oct 2026).
+  const customer = await getCustomer();
+  if (!customer) return NextResponse.json({ error: "Please sign in to place your order.", signIn: true }, { status: 401 });
 
   const parsed = checkoutSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
@@ -54,7 +59,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: UNAVAILABLE }, { status: 503 });
   }
 
-  const pending = await createPendingCheckout(input, q);
+  const pending = await createPendingCheckout(input, q, customer.id);
+  // Remember these details for next time.
+  await db.customer.update({
+    where: { id: customer.id },
+    data: { name: input.customerName, phone: input.customerPhone, lga: input.lga, exactAddress: input.exactAddress, landmark: input.landmark ?? null },
+  });
 
   if (isSimulatedPayments()) {
     return NextResponse.json({ mode: "simulated", orderId: pending.orderId, payUrl: `/dev/pay/${pending.orderId}` });

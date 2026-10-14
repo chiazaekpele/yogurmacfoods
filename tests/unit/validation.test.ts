@@ -25,6 +25,7 @@ const valid = {
   landmark: "",
   items: [{ variantId: "v1", quantity: 2 }],
   expectedTotalKobo: 100000,
+  acceptTerms: true,
 };
 
 describe("checkoutSchema", () => {
@@ -38,6 +39,11 @@ describe("checkoutSchema", () => {
     expect(checkoutSchema.safeParse({ ...valid, lga: "Abuja" }).success).toBe(false);
     expect(checkoutSchema.safeParse({ ...valid, total: 5 }).success).toBe(false);
     expect(checkoutSchema.safeParse({ ...valid, items: [{ variantId: "v1", quantity: 1, unitPrice: "1" }] }).success).toBe(false);
+  });
+  it("requires agreeing to the terms", () => {
+    expect(checkoutSchema.safeParse({ ...valid, acceptTerms: false }).success).toBe(false);
+    const { acceptTerms: _, ...withoutTerms } = valid;
+    expect(checkoutSchema.safeParse(withoutTerms).success).toBe(false);
   });
   it("bounds quantities", () => {
     expect(checkoutSchema.safeParse({ ...valid, items: [{ variantId: "v1", quantity: 0 }] }).success).toBe(false);

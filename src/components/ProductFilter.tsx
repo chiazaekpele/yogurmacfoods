@@ -9,6 +9,7 @@ const FILTERS = [
   { value: "YOGURT", label: "Greek Yogurt" },
   { value: "GRANOLA", label: "Granola" },
   { value: "ENERGY_BAR", label: "Energy Bars" },
+  { value: "WELLNESS_BOX", label: "Wellness Boxes" },
 ] as const;
 
 export function ProductFilter({ products }: { products: ProductSummary[] }) {
@@ -24,7 +25,7 @@ export function ProductFilter({ products }: { products: ProductSummary[] }) {
         ))}
       </div>
       {shown.length ? (
-        <div className={gridClass(shown.length)} style={{ borderTop: "none" }}>
+        <div className={gridClass(shown.length)}>
           {shown.map((p, i) => (
             <ProductCard key={p.id} product={p} eager={i < 4} />
           ))}

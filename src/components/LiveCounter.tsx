@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { GivingTotals } from "@/lib/giving";
-import { Naira } from "./Naira";
+import type { BoxTotals } from "@/lib/giving";
 
-const POLL_MS = 5000;
+const POLL_MS = 15_000; // matches the server-side cache in lib/giving.ts
 
-// Total given and children supported, refreshed every few seconds while the
-// page is visible, so new donations show up almost as they happen.
-export function LiveCounter({ initial }: { initial: GivingTotals }) {
+// Wellness boxes sold, refreshed every few seconds while the page is visible.
+export function LiveCounter({ initial }: { initial: BoxTotals }) {
   const [totals, setTotals] = useState(initial);
   const [bump, setBump] = useState(false);
 
@@ -20,9 +18,9 @@ export function LiveCounter({ initial }: { initial: GivingTotals }) {
         try {
           const res = await fetch("/api/giving", { cache: "no-store" });
           if (res.ok) {
-            const next = (await res.json()) as GivingTotals;
+            const next = (await res.json()) as BoxTotals;
             setTotals((prev) => {
-              if (next.children !== prev.children) {
+              if (next.boxes !== prev.boxes) {
                 setBump(true);
                 setTimeout(() => setBump(false), 900);
               }
@@ -46,19 +44,13 @@ export function LiveCounter({ initial }: { initial: GivingTotals }) {
   }, []);
 
   return (
-    <div className={`counter ${bump ? "counter-bump" : ""}`} aria-live="polite">
+    <div className={`counter counter-single ${bump ? "counter-bump" : ""}`} aria-live="polite">
       <div className="counter-cell">
-        <div className="counter-num">{totals.children.toLocaleString("en-NG")}</div>
-        <div className="counter-lbl">{totals.children === 1 ? "child supported" : "children supported"}</div>
-      </div>
-      <div className="counter-cell">
-        <div className="counter-num">
-          <Naira value={totals.raised} />
-        </div>
-        <div className="counter-lbl">given so far</div>
+        <div className="counter-num">{totals.boxes.toLocaleString("en-NG")}</div>
+        <div className="counter-lbl">{totals.boxes === 1 ? "wellness box sold" : "wellness boxes sold"}</div>
       </div>
       <div className="counter-live">
-        <span className="counter-dot" aria-hidden /> Live · updates as gifts come in
+        <span className="counter-dot" aria-hidden /> Live · 25% of our profits support the Ythirst Project
       </div>
     </div>
   );

@@ -13,7 +13,7 @@ export function ProductView({
   header,
   footer,
 }: {
-  product: { name: string; slug: string; images: string[]; category: "YOGURT" | "GRANOLA" | "ENERGY_BAR" };
+  product: { name: string; slug: string; images: string[]; category: "YOGURT" | "GRANOLA" | "ENERGY_BAR" | "WELLNESS_BOX" };
   variants: Variant[];
   header: React.ReactNode;
   footer: React.ReactNode;
@@ -28,10 +28,10 @@ export function ProductView({
   );
   return (
     <div className="pd">
-      <ProductGallery name={product.name} images={product.images} category={product.category} index={index} onIndex={setIndex} />
+      <ProductGallery name={product.name} images={product.images} index={index} onIndex={setIndex} />
       <div className="pd-info">
         {header}
-        <VariantPicker product={{ name: product.name, slug: product.slug, image: product.images[0] ?? null }} variants={variants} onImage={showImage} />
+        <VariantPicker product={{ name: product.name, slug: product.slug, image: product.images[0] ?? null }} variants={variants} onImage={showImage} isBox={product.category === "WELLNESS_BOX"} />
         {footer}
       </div>
     </div>

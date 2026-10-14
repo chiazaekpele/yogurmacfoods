@@ -1,6 +1,6 @@
 import { Prisma } from "@/generated/prisma/client";
 import { db } from "./db";
-import { sendDonationThanks, sendOrderConfirmation, sendSubscriptionThanks } from "./email";
+import { sendOrderConfirmation } from "./email";
 import { fromKobo, toKobo } from "./money";
 
 // Processing for Paystack webhook events (TRD §7.3, §8). The HTTP route verifies
@@ -39,10 +39,6 @@ export async function handlePaystackEvent(e: PaystackEvent): Promise<void> {
   }
 
   const result = await dispatch(e);
-  if (result.parked) {
-    await db.webhookEvent.update({ where: { id: event.id }, data: { note: result.note } });
-    return;
-  }
   await db.webhookEvent.update({
     where: { id: event.id },
     data: { processed: true, processedAt: new Date(), note: result.note ?? null },
@@ -52,28 +48,13 @@ export async function handlePaystackEvent(e: PaystackEvent): Promise<void> {
   for (const effect of result.effects) await effect();
 }
 
-type DispatchResult = { effects: SideEffect[]; note?: string; parked?: boolean };
+type DispatchResult = { effects: SideEffect[]; note?: string };
 
 async function dispatch(e: PaystackEvent): Promise<DispatchResult> {
-  switch (e.event) {
-    case "charge.success":
-      if (e.data?.metadata?.type === "donation") return donationCharge(e.data);
-      return isSubscriptionCharge(e.data) ? subscriptionCharge(e.data) : orderCharge(e.data);
-    case "subscription.create":
-      return subscriptionCreate(e.data);
-    case "subscription.not_renew":
-      return subscriptionUpdate(e.data, { endsAtPeriodEnd: true });
-    case "subscription.disable":
-      return subscriptionDisable(e.data);
-    case "invoice.payment_failed":
-      return subscriptionUpdate(e.data.subscription ?? e.data, { lastPaymentFailedAt: new Date() });
-    default:
-      return { effects: [], note: "ignored event type" };
-  }
-}
-
-function isSubscriptionCharge(data: Record<string, any>): boolean {
-  return data.metadata?.type === "subscription" || !!data.plan?.plan_code || !!data.plan_object?.plan_code;
+  // Shop orders are the only payments now (donations and monthly tiers were
+  // retired on 13 Oct 2026); any other event is recorded and ignored.
+  if (e.event === "charge.success") return orderCharge(e.data);
+  return { effects: [], note: "ignored event type" };
 }
 
 // ── One-time orders ───────────────────────────────────────────────────────────
@@ -81,6 +62,7 @@ function isSubscriptionCharge(data: Record<string, any>): boolean {
 type PendingItem = {
   variantId: string;
   quantity: number;
+  days?: number;
   unitPrice: string;
   productName: string;
   flavour: string;
@@ -114,6 +96,7 @@ async function orderCharge(data: Record<string, any>): Promise<DispatchResult> {
     const created = await tx.order.create({
       data: {
         orderId: pending.orderId,
+        customerId: pending.customerId,
         customerName: pending.customerName,
         customerEmail: pending.customerEmail,
         customerPhone: pending.customerPhone,
@@ -129,6 +112,7 @@ async function orderCharge(data: Record<string, any>): Promise<DispatchResult> {
           create: items.map((i) => ({
             variantId: i.variantId,
             quantity: i.quantity,
+            days: i.days ?? 1,
             unitPrice: i.unitPrice,
             productName: i.productName,
             flavour: i.flavour,
@@ -181,152 +165,6 @@ export async function sendOrderEmail(orderDbId: string): Promise<{ ok: boolean; 
     await db.order.update({ where: { id: order.id }, data: { emailError: message.slice(0, 500) } });
     return { ok: false, error: message };
   }
-}
-
-// ── One-time donations (₦500 per child) ───────────────────────────────────────
-
-async function donationCharge(data: Record<string, any>): Promise<DispatchResult> {
-  const reference = String(data.reference ?? "");
-  const donation = await db.donation.findUnique({ where: { reference } });
-  if (!donation) {
-    await alert("ORPHAN_DONATION", `Paystack donation ${reference} (${fromKobo(Number(data.amount ?? 0))} NGN) has no matching record.`, reference);
-    return { effects: [], note: "no donation record" };
-  }
-  if (donation.status === "PAID") return { effects: [donationEmailEffect(donation.id)], note: "donation already paid" };
-
-  const expected = toKobo(donation.amount);
-  if (data.status !== "success" || data.currency !== "NGN" || Number(data.amount) !== expected) {
-    await alert(
-      "PAYMENT_MISMATCH",
-      `Donation ${reference} did not match: status ${data.status}, ${data.currency} ${data.amount} kobo, expected NGN ${expected} kobo.`,
-      reference,
-    );
-    return { effects: [], note: "payment mismatch" };
-  }
-
-  await db.$transaction(async (tx) => {
-    const { count } = await tx.donation.updateMany({
-      where: { id: donation.id, status: "PENDING" },
-      data: { status: "PAID", amountPaid: fromKobo(Number(data.amount)), paidAt: data.paid_at ? new Date(data.paid_at) : new Date() },
-    });
-    if (count) {
-      await tx.auditLog.create({
-        data: { action: "DONATION_PAID", entityType: "Donation", entityId: donation.id, newValue: { reference, children: donation.children, amount: donation.amount.toString() } },
-      });
-    }
-  });
-  return { effects: [donationEmailEffect(donation.id)] };
-}
-
-function donationEmailEffect(donationId: string): SideEffect {
-  return async () => {
-    const d = await db.donation.findUnique({ where: { id: donationId } });
-    if (!d || d.emailSent) return;
-    try {
-      await sendDonationThanks({ ...d, amount: d.amount.toString() });
-      await db.donation.update({ where: { id: d.id }, data: { emailSent: true } });
-    } catch (err) {
-      console.error(`Donation thank-you email failed for ${d.reference}:`, err);
-    }
-  };
-}
-
-// ── Donation subscriptions (legacy monthly tiers) ───────────────────────────── ────────────────────────────────────────────────────
-
-async function subscriptionCreate(data: Record<string, any>): Promise<DispatchResult> {
-  const planCode = data.plan?.plan_code;
-  const tier = planCode ? await db.subscriptionTier.findUnique({ where: { paystackPlanCode: planCode } }) : null;
-  if (!tier) {
-    await alert("UNKNOWN_PLAN", `Subscription ${data.subscription_code} uses unknown plan ${planCode}.`, data.subscription_code);
-    return { effects: [], note: "unknown plan" };
-  }
-
-  const customer = data.customer ?? {};
-  const name = [customer.first_name, customer.last_name].filter(Boolean).join(" ") || customer.email;
-  const subscription = await db.subscription.upsert({
-    where: { paystackSubscriptionCode: data.subscription_code },
-    update: {},
-    create: {
-      tierId: tier.id,
-      subscriberName: name,
-      subscriberEmail: String(customer.email).toLowerCase(),
-      paystackSubscriptionCode: data.subscription_code,
-      paystackCustomerCode: customer.customer_code,
-      startDate: data.createdAt ? new Date(data.createdAt) : new Date(),
-      nextPaymentDate: data.next_payment_date ? new Date(data.next_payment_date) : null,
-    },
-  });
-
-  return {
-    effects: [
-      () =>
-        sendSubscriptionThanks({
-          subscriptionCode: subscription.paystackSubscriptionCode,
-          subscriberName: subscription.subscriberName,
-          subscriberEmail: subscription.subscriberEmail,
-          tierName: tier.name,
-          monthlyAmount: tier.monthlyAmount.toString(),
-        }).catch((err) => console.error("Subscription email failed:", err)),
-      // A first charge.success that arrived before this event was parked; process it now.
-      () => retryParkedCharges(customer.customer_code),
-    ],
-  };
-}
-
-async function subscriptionCharge(data: Record<string, any>): Promise<DispatchResult> {
-  const customerCode = data.customer?.customer_code;
-  const subscription = customerCode
-    ? await db.subscription.findFirst({
-        where: { paystackCustomerCode: customerCode },
-        orderBy: { createdAt: "desc" },
-      })
-    : null;
-  if (!subscription) return { effects: [], parked: true, note: "waiting for subscription.create" };
-
-  await db.subscriptionPayment.upsert({
-    where: { paystackRef: data.reference },
-    update: {},
-    create: {
-      subscriptionId: subscription.id,
-      paystackRef: data.reference,
-      amount: fromKobo(Number(data.amount)),
-      status: data.status,
-      paidAt: data.paid_at ? new Date(data.paid_at) : new Date(),
-    },
-  });
-  return { effects: [] };
-}
-
-async function retryParkedCharges(customerCode: string | undefined): Promise<void> {
-  if (!customerCode) return;
-  const parked = await db.webhookEvent.findMany({
-    where: { eventType: "charge.success", processed: false, note: "waiting for subscription.create" },
-  });
-  for (const ev of parked) {
-    const payload = ev.payload as unknown as PaystackEvent;
-    if (payload.data?.customer?.customer_code === customerCode) await handlePaystackEvent(payload);
-  }
-}
-
-async function subscriptionUpdate(
-  data: Record<string, any>,
-  change: Prisma.SubscriptionUpdateInput,
-): Promise<DispatchResult> {
-  const code = data.subscription_code;
-  if (!code) return { effects: [], note: "no subscription code" };
-  const { count } = await db.subscription.updateMany({ where: { paystackSubscriptionCode: code }, data: change as any });
-  return { effects: [], note: count ? undefined : "subscription not found" };
-}
-
-async function subscriptionDisable(data: Record<string, any>): Promise<DispatchResult> {
-  const sub = await db.subscription.findUnique({ where: { paystackSubscriptionCode: data.subscription_code } });
-  if (!sub) return { effects: [], note: "subscription not found" };
-  // A subscription the partner chose not to renew has run its course; otherwise it was cancelled.
-  await db.subscription.update({
-    where: { id: sub.id },
-    data: { status: sub.endsAtPeriodEnd ? "EXPIRED" : "CANCELLED" },
-  });
-  return { effects: [] };
 }
 
 async function alert(type: string, message: string, reference?: string) {

@@ -16,9 +16,13 @@ export const phoneSchema = z
     return n;
   });
 
+export const MAX_DAYS = 365;
+
 export const cartItemSchema = z.strictObject({
   variantId: z.string().min(1).max(64),
   quantity: z.number().int().min(1).max(99),
+  // Wellness boxes only: one box delivered each day for this many days.
+  days: z.number().int().min(1).max(MAX_DAYS).optional().default(1),
 });
 
 export const checkoutSchema = z.strictObject({
@@ -31,22 +35,11 @@ export const checkoutSchema = z.strictObject({
   items: z.array(cartItemSchema).min(1, "Your cart is empty").max(50),
   // Total the customer was shown, in kobo. Used only to detect price drift.
   expectedTotalKobo: z.number().int().nonnegative(),
+  // Required tick box at checkout (Yogurmac's terms, 14 Oct 2026).
+  acceptTerms: z.literal(true, { message: "Please agree to the Terms & Conditions and Privacy Policy" }),
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
-
-export const MAX_CHILDREN_PER_GIFT = 2000;
-
-export const donateSchema = z.strictObject({
-  children: z
-    .number({ message: "Choose how many children to support" })
-    .int("Choose a whole number of children")
-    .min(1, "Support at least one child")
-    .max(MAX_CHILDREN_PER_GIFT, `For gifts above ${MAX_CHILDREN_PER_GIFT} children, please contact us`),
-  donorName: z.string().trim().max(100).optional().transform((v) => v || undefined),
-  donorEmail: email,
-});
-export type DonateInput = z.infer<typeof donateSchema>;
 
 export function fieldErrors(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};

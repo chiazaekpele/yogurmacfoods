@@ -44,12 +44,12 @@ export type OrderEmailData = {
   subtotal: string;
   shippingFee: string;
   total: string;
-  items: { productName: string; flavour: string; size: string; quantity: number; unitPrice: string }[];
+  items: { productName: string; flavour: string; size: string; quantity: number; days: number; unitPrice: string }[];
 };
 
 export async function sendOrderConfirmation(o: OrderEmailData): Promise<void> {
   const lines = o.items.map(
-    (i) => `${i.quantity} × ${i.productName} (${i.flavour}, ${i.size}) — ${formatNaira(i.unitPrice)} each`,
+    (i) => `${i.quantity} × ${i.productName} (${i.flavour}, ${i.size})${i.days > 1 ? `, one a day for ${i.days} days` : ""} — ${formatNaira(i.unitPrice)} each`,
   );
   const address = `${o.exactAddress}${o.landmark ? ` (near ${o.landmark})` : ""}, ${o.lga}`;
   const orderUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}${orderPath(o.orderId)}`;
@@ -74,7 +74,7 @@ export async function sendOrderConfirmation(o: OrderEmailData): Promise<void> {
   const rows = o.items
     .map(
       (i) =>
-        `<tr><td style="padding:6px 0">${i.quantity} × ${escape(i.productName)} <span style="color:#666">(${escape(i.flavour)}, ${escape(i.size)})</span></td><td style="text-align:right">${formatNaira(i.unitPrice)}</td></tr>`,
+        `<tr><td style="padding:6px 0">${i.quantity} × ${escape(i.productName)} <span style="color:#666">(${escape(i.flavour)}, ${escape(i.size)}${i.days > 1 ? `, one a day for ${i.days} days` : ""})</span></td><td style="text-align:right">${formatNaira(i.unitPrice)}</td></tr>`,
     )
     .join("");
   const html = layout(
@@ -97,54 +97,4 @@ export async function sendOrderConfirmation(o: OrderEmailData): Promise<void> {
     text,
     idempotencyKey: `order-confirmation-${o.orderId}`,
   });
-}
-
-export async function sendSubscriptionThanks(s: {
-  subscriptionCode: string;
-  subscriberName: string;
-  subscriberEmail: string;
-  tierName: string;
-  monthlyAmount: string;
-}): Promise<void> {
-  const text = [
-    `Hi ${s.subscriberName},`,
-    ``,
-    `Thank you for becoming a ${s.tierName} with a monthly gift of ${formatNaira(s.monthlyAmount)}.`,
-    `Every naira of your partnership funds the Ythirst Community Project and its outreach to children across Lagos.`,
-    ``,
-    `Paystack will charge your card monthly. You can cancel at any time from the link in your Paystack receipt.`,
-  ].join("\n");
-  const html = layout(
-    "Thank you, partner",
-    `<p>Hi ${escape(s.subscriberName)},</p>
-<p>Thank you for becoming a <strong>${escape(s.tierName)}</strong> with a monthly gift of <strong>${formatNaira(s.monthlyAmount)}</strong>.</p>
-<p>Every naira of your partnership funds the Ythirst Community Project and its outreach to children across Lagos.</p>
-<p style="font-size:13px;color:#555">Paystack will charge your card monthly. You can cancel at any time from the link in your Paystack receipt.</p>`,
-  );
-  await send({
-    to: s.subscriberEmail,
-    subject: `Thank you for partnering with Yogurmac`,
-    html,
-    text,
-    idempotencyKey: `subscription-thanks-${s.subscriptionCode}`,
-  });
-}
-
-export async function sendDonationThanks(d: { reference: string; donorName: string | null; donorEmail: string; children: number; amount: string }): Promise<void> {
-  const who = d.donorName ? `Hi ${d.donorName},` : "Hello,";
-  const kids = `${d.children} ${d.children === 1 ? "child" : "children"}`;
-  const text = [
-    who,
-    ``,
-    `Thank you for your gift of ${formatNaira(d.amount)} to the Ythirst Community Project. At ₦500 per child, that supports ${kids} in Lagos.`,
-    ``,
-    `Your reference is ${d.reference}.`,
-  ].join("\n");
-  const html = layout(
-    "Thank you for giving",
-    `<p>${escape(who)}</p>
-<p>Thank you for your gift of <strong>${formatNaira(d.amount)}</strong> to the Ythirst Community Project. At ₦500 per child, that supports <strong>${kids}</strong> in Lagos.</p>
-<p style="font-size:13px;color:#555">Your reference is ${d.reference}.</p>`,
-  );
-  await send({ to: d.donorEmail, subject: "Thank you for supporting Ythirst", html, text, idempotencyKey: `donation-thanks-${d.reference}` });
 }

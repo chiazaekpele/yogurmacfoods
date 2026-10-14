@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useCart } from "@/hooks/useCart";
+import { daysOf, lineKey, useCart } from "@/hooks/useCart";
 import { formatNaira, fromKobo, toKobo } from "@/lib/money";
 import { openPaystack } from "@/lib/paystack-inline";
 import { checkoutSchema, fieldErrors } from "@/lib/validation";
@@ -16,22 +16,26 @@ const EMPTY_FORM = { customerName: "", customerPhone: "", customerEmail: "", lga
 export function CheckoutForm({
   lgas,
   simulated,
-  paystackPublicKey,
+  initial,
 }: {
   lgas: Lga[];
   simulated: boolean;
-  paystackPublicKey: string;
+  initial?: Partial<typeof EMPTY_FORM>;
 }) {
   const router = useRouter();
   const { items, subtotalKobo, reprice } = useCart();
-  const [form, setForm] = useState(EMPTY_FORM);
+  // Pre-filled from the signed-in customer's saved details.
+  const [form, setForm] = useState({ ...EMPTY_FORM, ...initial });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const fee = lgas.find((l) => l.name === form.lga)?.fee;
-  const shippingKobo = fee ? toKobo(fee) : 0;
+  // Daily boxes: the delivery fee applies to each delivery day (matches the server quote).
+  const deliveryDays = Math.max(1, ...items.map(daysOf));
+  const shippingKobo = fee ? toKobo(fee) * deliveryDays : 0;
   const totalKobo = subtotalKobo + shippingKobo;
 
   if (!items.length) {
@@ -57,8 +61,9 @@ export function CheckoutForm({
 
     const payload = {
       ...form,
-      items: items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })),
+      items: items.map((i) => ({ variantId: i.variantId, quantity: i.quantity, days: daysOf(i) })),
       expectedTotalKobo: totalKobo,
+      acceptTerms,
     };
     const parsed = checkoutSchema.safeParse(payload);
     if (!parsed.success) {
@@ -85,6 +90,10 @@ export function CheckoutForm({
         setNotice(`${data.error} New total: ${formatNaira(data.total)}. Press “Place order & pay” again to continue.`);
         return;
       }
+      if (res.status === 401 && data.signIn) {
+        router.push("/account/sign-up?next=/checkout");
+        return;
+      }
       if (!res.ok) {
         if (data.fields) setErrors(data.fields);
         setFormError(data.error ?? "Something went wrong. Please try again.");
@@ -97,7 +106,7 @@ export function CheckoutForm({
       }
 
       // Paystack inline checkout. The order is created by the webhook, not here.
-      const result = await openPaystack(paystackPublicKey, data.accessCode);
+      const result = await openPaystack(data.accessCode);
       if (result === "success") router.push(data.orderUrl);
       else setFormError("Payment was not completed. Your details are saved — you can try again.");
     } catch {
@@ -203,11 +212,11 @@ export function CheckoutForm({
         <h2>Order summary</h2>
         <div className="sum-items">
           {items.map((i) => (
-            <div key={i.variantId}>
+            <div key={lineKey(i)}>
               <span>
-                {i.quantity} × {i.productName} ({i.flavour}, {i.size})
+                {i.quantity} × {i.productName} ({i.flavour}, {i.size}){daysOf(i) > 1 ? `, daily for ${daysOf(i)} days` : ""}
               </span>
-              <span>{formatNaira(fromKobo(toKobo(i.unitPrice) * i.quantity))}</span>
+              <span>{formatNaira(fromKobo(toKobo(i.unitPrice) * i.quantity * daysOf(i)))}</span>
             </div>
           ))}
         </div>
@@ -218,7 +227,7 @@ export function CheckoutForm({
         </div>
         <div className="sum-row">
           <span>Delivery{form.lga ? ` (${form.lga})` : ""}</span>
-          <span>{fee ? formatNaira(fee) : "Select LGA"}</span>
+          <span>{fee ? (deliveryDays > 1 ? `${formatNaira(fee)} × ${deliveryDays} days` : formatNaira(fee)) : "Select LGA"}</span>
         </div>
         <div className="sum-row total">
           <span>Total</span>
@@ -226,6 +235,30 @@ export function CheckoutForm({
             <Naira value={fromKobo(totalKobo)} />
           </span>
         </div>
+        <label className="terms-check">
+          <input
+            type="checkbox"
+            checked={acceptTerms}
+            onChange={(e) => {
+              setAcceptTerms(e.target.checked);
+              if (errors.acceptTerms) setErrors(({ acceptTerms: _, ...rest }) => rest);
+            }}
+            aria-invalid={errors.acceptTerms ? true : undefined}
+            aria-describedby={errors.acceptTerms ? "acceptTerms-err" : undefined}
+          />
+          <span>
+            I agree to the{" "}
+            <Link href="/terms" target="_blank">
+              Terms &amp; Conditions
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy-policy" target="_blank">
+              Privacy Policy
+            </Link>
+            .
+          </span>
+        </label>
+        {err("acceptTerms")}
         <button className="btn btn-block" type="submit" disabled={busy} style={{ marginTop: 16 }}>
           {busy ? "Please wait…" : "Place order & pay"}
         </button>

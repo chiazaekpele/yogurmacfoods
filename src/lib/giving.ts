@@ -1,14 +1,24 @@
 import { db } from "./db";
-import { fromKobo, toKobo } from "./money";
 
-// Confirmed 10 Oct 2026: every ₦500 given supports one child.
-export const NAIRA_PER_CHILD = 500;
-export const KOBO_PER_CHILD = NAIRA_PER_CHILD * 100;
+// Ythirst is funded by 25% of Yogurmac's profits (13 Oct 2026). The site can't
+// see profit, so the live counter shows wellness boxes sold instead: each day
+// of a daily box counts as one box. Orders only exist once paid.
+export type BoxTotals = { boxes: number };
 
-export type GivingTotals = { raised: string; children: number; gifts: number };
+// Every open page polls this, so the total is kept for a few seconds rather
+// than summed on every request (per server instance).
+const TTL_MS = 15_000;
+let cached: { at: number; value: BoxTotals } | null = null;
 
-// The live counter: confirmed (webhook-verified) donations only.
-export async function getGivingTotals(): Promise<GivingTotals> {
-  const agg = await db.donation.aggregate({ where: { status: "PAID" }, _sum: { amount: true, children: true }, _count: true });
-  return { raised: fromKobo(toKobo(agg._sum.amount ?? "0")), children: agg._sum.children ?? 0, gifts: agg._count };
+export async function getBoxTotals(): Promise<BoxTotals> {
+  if (cached && Date.now() - cached.at < TTL_MS) return cached.value;
+  const [row] = await db.$queryRaw<{ boxes: bigint | null }[]>`
+    SELECT sum(i.quantity * i.days) AS boxes
+    FROM "OrderItem" i
+    JOIN "ProductVariant" v ON v.id = i."variantId"
+    JOIN "Product" p ON p.id = v."productId"
+    WHERE p.category = 'WELLNESS_BOX'`;
+  const value = { boxes: Number(row?.boxes ?? 0) };
+  cached = { at: Date.now(), value };
+  return value;
 }

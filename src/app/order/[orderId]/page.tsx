@@ -43,15 +43,15 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/or
         Your order will be ready in 2–3 business days
       </div>
 
-      <div className="summary" style={{ border: "var(--b)", padding: 20, background: "#FBF8F3" }}>
+      <div className="summary">
         <h2>Summary</h2>
         <div className="sum-items">
           {order.items.map((i) => (
             <div key={i.id}>
               <span>
-                {i.quantity} × {i.productName} ({i.flavour}, {i.size})
+                {i.quantity} × {i.productName} ({i.flavour}, {i.size}){i.days > 1 ? `, daily for ${i.days} days` : ""}
               </span>
-              <span>{formatNaira(i.unitPrice.mul(i.quantity).toString())}</span>
+              <span>{formatNaira(i.unitPrice.mul(i.quantity * i.days).toString())}</span>
             </div>
           ))}
         </div>

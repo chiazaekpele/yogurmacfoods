@@ -32,7 +32,7 @@ function loadScript(): Promise<void> {
   });
 }
 
-export async function openPaystack(_publicKey: string, accessCode: string): Promise<"success" | "cancelled"> {
+export async function openPaystack(accessCode: string): Promise<"success" | "cancelled"> {
   await loadScript();
   return new Promise((resolve, reject) => {
     const popup = new window.PaystackPop!();
