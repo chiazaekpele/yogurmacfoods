@@ -10,7 +10,7 @@ export const phoneSchema = z
   .transform((v, ctx) => {
     const n = normaliseNigerianMobile(v);
     if (!n) {
-      ctx.addIssue({ code: "custom", message: "Enter a valid Nigerian mobile number" });
+      ctx.addIssue({ code: "custom", message: "Enter an 11-digit mobile number like 09133999279, or +2349133999279" });
       return z.NEVER;
     }
     return n;
