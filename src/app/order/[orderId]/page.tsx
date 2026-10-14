@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { formatNaira } from "@/lib/money";
 import { ORDER_ID_PATTERN } from "@/lib/order-id";
 import { isValidOrderToken } from "@/lib/order-link";
+import { confirmFromPaystack } from "@/lib/webhooks";
 import { Naira } from "@/components/Naira";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,9 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/or
   if (!ORDER_ID_PATTERN.test(orderId)) notFound();
   const showAddress = isValidOrderToken(orderId, (await searchParams).t);
 
-  const order = await db.order.findUnique({ where: { orderId }, include: { items: true } });
+  let order = await db.order.findUnique({ where: { orderId }, include: { items: true } });
+  // Back from Paystack before the webhook: check the payment directly.
+  if (!order && (await confirmFromPaystack(orderId))) order = await db.order.findUnique({ where: { orderId }, include: { items: true } });
 
   if (!order) {
     // The browser can arrive before Paystack's webhook has created the order.

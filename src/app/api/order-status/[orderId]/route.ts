@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { ORDER_ID_PATTERN } from "@/lib/order-id";
+import { confirmFromPaystack } from "@/lib/webhooks";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +16,6 @@ export async function GET(req: Request, ctx: RouteContext<"/api/order-status/[or
   const order = await db.order.findUnique({ where: { orderId }, select: { id: true } });
   if (order) return NextResponse.json({ state: "confirmed" });
   const pending = await db.pendingCheckout.findUnique({ where: { orderId }, select: { id: true } });
-  if (pending) return NextResponse.json({ state: "pending" });
+  if (pending) return NextResponse.json({ state: (await confirmFromPaystack(orderId)) ? "confirmed" : "pending" });
   return NextResponse.json({ state: "not_found" }, { status: 404 });
 }

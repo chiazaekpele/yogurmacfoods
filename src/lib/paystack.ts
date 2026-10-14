@@ -31,6 +31,18 @@ async function paystack<T>(path: string, body: unknown): Promise<T> {
   return json.data;
 }
 
+// The transaction as Paystack records it (same shape as a charge.success
+// webhook's data). Used when the customer returns before the webhook arrives.
+export async function verifyTransaction(reference: string): Promise<Record<string, unknown>> {
+  const res = await fetch(`${API}/transaction/verify/${encodeURIComponent(reference)}`, {
+    headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
+    signal: AbortSignal.timeout(10_000),
+  });
+  const json = (await res.json().catch(() => null)) as { status?: boolean; message?: string; data?: Record<string, unknown> } | null;
+  if (!res.ok || !json?.status || !json.data) throw new PaystackError(json?.message ?? `Paystack verify failed with HTTP ${res.status}`);
+  return json.data;
+}
+
 type InitializeResult = { authorization_url: string; access_code: string; reference: string };
 
 export function initializeTransaction(params: {

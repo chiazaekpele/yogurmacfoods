@@ -5,6 +5,7 @@ import { requireCustomer } from "@/lib/customer";
 import { db } from "@/lib/db";
 import { formatNaira } from "@/lib/money";
 import { orderPath } from "@/lib/order-link";
+import { confirmFromPaystack } from "@/lib/webhooks";
 import { signOut } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +16,14 @@ const date = new Intl.DateTimeFormat("en-NG", { timeZone: "Africa/Lagos", day: "
 
 export default async function AccountPage() {
   const c = await requireCustomer("/account");
+  // Payments from the last two days still waiting on Paystack's webhook.
+  const waiting = await db.pendingCheckout.findMany({
+    where: { customerId: c.id, consumedAt: null, createdAt: { gte: new Date(Date.now() - 2 * 86_400_000) } },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+    select: { orderId: true },
+  });
+  await Promise.all(waiting.map((p) => confirmFromPaystack(p.orderId)));
   const orders = await db.order.findMany({
     where: { customerId: c.id },
     orderBy: { createdAt: "desc" },

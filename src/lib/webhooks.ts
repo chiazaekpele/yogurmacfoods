@@ -2,6 +2,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { db } from "./db";
 import { sendOrderConfirmation } from "./email";
 import { fromKobo, toKobo } from "./money";
+import { isPaystackConfigured, verifyTransaction } from "./paystack";
 
 // Processing for Paystack webhook events (TRD §7.3, §8). The HTTP route verifies
 // the signature and IP, then hands the parsed event here. The simulated payment
@@ -46,6 +47,29 @@ export async function handlePaystackEvent(e: PaystackEvent): Promise<void> {
 
   // Emails go out only after the database work is committed.
   for (const effect of result.effects) await effect();
+}
+
+// Fallback for a missing or late webhook: when the customer is back on their
+// order page, ask Paystack about the payment and, if it succeeded, process it
+// exactly as the webhook would. Same dedupe key as the webhook (event + the
+// transaction id), so whichever arrives second does nothing.
+const lastCheck = new Map<string, number>();
+const CHECK_EVERY_MS = 5000;
+
+export async function confirmFromPaystack(orderId: string): Promise<boolean> {
+  if (!isPaystackConfigured()) return false;
+  const now = Date.now();
+  if (now - (lastCheck.get(orderId) ?? 0) < CHECK_EVERY_MS) return false;
+  lastCheck.set(orderId, now);
+  try {
+    const data = await verifyTransaction(orderId);
+    if (data.status !== "success") return false;
+    await handlePaystackEvent({ event: "charge.success", data });
+    return !!(await db.order.findUnique({ where: { orderId }, select: { id: true } }));
+  } catch (err) {
+    console.error(`Paystack verify for ${orderId} failed:`, err);
+    return false;
+  }
 }
 
 type DispatchResult = { effects: SideEffect[]; note?: string };
