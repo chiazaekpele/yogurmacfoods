@@ -9,6 +9,7 @@ import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { LAGOS_LGAS } from "@/lib/lgas";
 import { phoneSchema } from "@/lib/validation";
+import { siteUrl } from "@/lib/site";
 
 // `values` echoes what was typed (never passwords) so fields keep their content:
 // React clears a form after every submission.
@@ -78,7 +79,7 @@ export async function requestReset(_prev: FormState, form: FormData): Promise<Fo
   }
   const parsed = email.safeParse(form.get("email"));
   if (!parsed.success) return { fields: { email: parsed.error.issues[0].message }, values: keep(form) };
-  const site = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const site = siteUrl();
   const { error } = await auth.requestPasswordReset({ email: parsed.data, redirectTo: `${site}/account/reset` });
   if (error) console.error("Password reset request failed:", error);
   return { ok: "If there’s an account for that email, we’ve sent a link to reset your password. Check your inbox." };

@@ -1,0 +1,11 @@
+# Only the shop deploys. The staff portal is on hold and never uploads.
+staff
+docs
+tests
+.next
+node_modules
+src/generated
+.env
+.env.*
+!.env.example
+tsconfig.tsbuildinfo

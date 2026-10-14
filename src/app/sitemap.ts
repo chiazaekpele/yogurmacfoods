@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/lib/db";
+import { siteUrl } from "@/lib/site";
 
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const site = siteUrl();
   // A database blip must not fail the build; the hourly refresh adds products back.
   const products = await db.product
     .findMany({ where: { isActive: true }, select: { slug: true, updatedAt: true } })

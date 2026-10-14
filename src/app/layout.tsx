@@ -4,12 +4,13 @@ import { CookieNotice } from "@/components/CookieNotice";
 import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/Nav";
 import "./globals.css";
+import { siteUrl } from "@/lib/site";
 
 // One typeface across the site: Fredoka (weights 400–700).
 const fredoka = Fredoka({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-fredoka", display: "swap" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(siteUrl()),
   title: { default: "Yogurmac Foods — Premium Greek yogurt, granola & energy bars", template: "%s · Yogurmac Foods" },
   description:
     "Faith-driven, Lagos-made Greek yogurt, granola and energy bars, made fresh to order and delivered across Lagos.",

@@ -8,3 +8,5 @@ src/generated/
 next-env.d.ts
 _zeroed-placeholders/
 coverage/
+.vercel
+.env*

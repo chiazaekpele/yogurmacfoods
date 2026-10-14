@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 import { formatNaira } from "./money";
 import { orderPath } from "./order-link";
-import { CONTACT_EMAIL } from "./site";
+import { CONTACT_EMAIL, siteUrl } from "./site";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const FROM = process.env.EMAIL_FROM || "Yogurmac Foods <orders@yogurmacfoods.com>";
@@ -52,7 +52,7 @@ export async function sendOrderConfirmation(o: OrderEmailData): Promise<void> {
     (i) => `${i.quantity} × ${i.productName} (${i.flavour}, ${i.size})${i.days > 1 ? `, one a day for ${i.days} days` : ""} — ${formatNaira(i.unitPrice)} each`,
   );
   const address = `${o.exactAddress}${o.landmark ? ` (near ${o.landmark})` : ""}, ${o.lga}`;
-  const orderUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}${orderPath(o.orderId)}`;
+  const orderUrl = `${siteUrl()}${orderPath(o.orderId)}`;
   const text = [
     `Hi ${o.customerName},`,
     ``,

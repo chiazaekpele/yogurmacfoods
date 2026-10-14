@@ -8,6 +8,7 @@ import { isSameOrigin } from "@/lib/origin";
 import { initializeTransaction, isPaystackConfigured, isSimulatedPayments } from "@/lib/paystack";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { checkoutSchema, fieldErrors } from "@/lib/validation";
+import { siteUrl } from "@/lib/site";
 
 export const runtime = "nodejs";
 
@@ -75,7 +76,7 @@ export async function POST(req: Request) {
       email: input.customerEmail,
       amountKobo: q.totalKobo,
       reference: pending.orderId,
-      callbackUrl: `${process.env.NEXT_PUBLIC_SITE_URL}${orderPath(pending.orderId)}`,
+      callbackUrl: `${siteUrl()}${orderPath(pending.orderId)}`,
       metadata: { type: "order", orderId: pending.orderId },
     });
     await db.pendingCheckout.update({ where: { id: pending.id }, data: { accessCode: tx.access_code } });
