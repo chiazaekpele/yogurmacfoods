@@ -1,6 +1,6 @@
 # Launch checklist
 
-One app: the shop (repo root, `yogurmacfoods.com`), with the business owner's admin
+One app: the shop (repo root, `shopyogurmacfoods.com`, DNS at Cloudflare), with the business owner's admin
 panel at `/admin` (14 Oct 2026). The separate staff portal (`staff/`) is on hold: its
 code is kept but it is not deployed. Order matters: the database must
 exist before the first shop build (the sitemap reads products at build time), and
@@ -27,7 +27,7 @@ both migrations applied, catalogue seeded with the four photographed products.
 | Service | What to do | Env vars |
 |---|---|---|
 | Paystack | Business account must be verified for live keys. Webhook URL: `https://<shop domain>/api/webhooks/paystack` (test and live): it confirms both orders and donations. IP list from Paystack's webhook docs. | Shop only: `PAYSTACK_SECRET_KEY`, `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`, `PAYSTACK_WEBHOOK_IPS` |
-| Resend | Add domain, put SPF/DKIM/DMARC records in HostAfrica DNS, wait for "verified" | Both apps: `RESEND_API_KEY`, `EMAIL_FROM` |
+| Resend | Add domain, put SPF/DKIM/DMARC records in Cloudflare DNS, wait for "verified" | `RESEND_API_KEY`, `EMAIL_FROM` |
 | Upstash | One Redis database used by both apps | Both apps: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` |
 | Sentry | Dropped for now | — |
 
@@ -46,7 +46,7 @@ Shop project, root directory = repo root:
 - [ ] Preview env uses **test** Paystack keys and the Neon `dev` branch, never live ones
 
 - [ ] `vercel.json` already disables Git auto-deploys and schedules the daily cron; deploy manually with `vercel deploy --prod`
-- [ ] Domain: add it in Vercel, then set the records Vercel shows in HostAfrica DNS
+- [ ] Domain: `shopyogurmacfoods.com` and `www.` are added in Vercel. In Cloudflare DNS: `A @ 76.76.21.21` and `CNAME www cname.vercel-dns.com`, both **DNS only** (grey cloud)
 
 ## 6. Smoke test on the live domains
 
@@ -80,7 +80,7 @@ Then:
 - Our Story / Ythirst copy approval
 - Privacy policy: data retention period and sign-off (remove the "Draft" notice in `src/app/privacy-policy/page.tsx`)
 - A real contact inbox for `NEXT_PUBLIC_CONTACT_EMAIL`
-- HostAfrica DNS access and Paystack business account status
+- Paystack business account status
 
 The owner can enter prices, fees, impact numbers and homepage images in the admin once signed
 in; no code change is needed. Since 13 Oct 2026: customers need an account to pay; the
