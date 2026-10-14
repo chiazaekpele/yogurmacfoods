@@ -18,7 +18,7 @@ export default async function CustomerDetail({ params }: PageProps<"/admin/custo
     include: {
       orders: {
         orderBy: { createdAt: "desc" },
-        include: { items: { select: { productName: true, flavour: true, size: true, quantity: true, days: true, variant: { select: { product: { select: { category: true } } } } } } },
+        include: { items: { select: { productName: true, flavour: true, size: true, quantity: true, days: true, variant: { select: { product: { select: { category: { select: { isBox: true } } } } } } } } },
       },
     },
   });
@@ -28,7 +28,7 @@ export default async function CustomerDetail({ params }: PageProps<"/admin/custo
   // Each day of a daily box counts as one box, as on the shop's counter.
   const boxes = customer.orders
     .flatMap((o) => o.items)
-    .filter((i) => i.variant.product.category === "WELLNESS_BOX")
+    .filter((i) => i.variant.product.category.isBox)
     .reduce((n, i) => n + i.quantity * i.days, 0);
 
   return (

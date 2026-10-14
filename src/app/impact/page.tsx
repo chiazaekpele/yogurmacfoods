@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 // Copy supplied by Yogurmac, 13 Oct 2026.
 export default async function ImpactPage() {
-  const [boxes, totals] = await Promise.all([listProducts({ category: "WELLNESS_BOX" }), getBoxTotals()]);
+  const [boxes, totals] = await Promise.all([listProducts({ boxesOnly: true }), getBoxTotals()]);
   return (
     <>
       <div className="page-head page-head-leaf">

@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { ProductGallery } from "./ProductGallery";
 import { VariantPicker } from "./VariantPicker";
 
-type Variant = { id: string; flavour: string; size: string; price: string; isAvailable: boolean; imageUrl: string | null };
+type Variant = { id: string; flavour: string; size: string; price: string; isAvailable: boolean; imageUrl: string | null; contents: string | null };
 
 // Product photo and option picker, so choosing a flavour shows its photo.
 export function ProductView({
@@ -13,7 +13,7 @@ export function ProductView({
   header,
   footer,
 }: {
-  product: { name: string; slug: string; images: string[]; category: "YOGURT" | "GRANOLA" | "ENERGY_BAR" | "WELLNESS_BOX" };
+  product: { name: string; slug: string; images: string[]; isBox: boolean };
   variants: Variant[];
   header: React.ReactNode;
   footer: React.ReactNode;
@@ -31,7 +31,7 @@ export function ProductView({
       <ProductGallery name={product.name} images={product.images} index={index} onIndex={setIndex} />
       <div className="pd-info">
         {header}
-        <VariantPicker product={{ name: product.name, slug: product.slug, image: product.images[0] ?? null }} variants={variants} onImage={showImage} isBox={product.category === "WELLNESS_BOX"} />
+        <VariantPicker product={{ name: product.name, slug: product.slug, image: product.images[0] ?? null }} variants={variants} onImage={showImage} isBox={product.isBox} />
         {footer}
       </div>
     </div>

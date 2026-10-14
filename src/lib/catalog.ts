@@ -1,20 +1,21 @@
-import type { Category } from "@/generated/prisma/client";
 import { type ProductSummary } from "./categories";
 import { db } from "./db";
 
-export { CATEGORY_LABELS, gridClass, type ProductSummary } from "./categories";
+export { gridClass, type ProductSummary } from "./categories";
+
+const CATEGORY_FIELDS = { select: { name: true, slug: true, isBox: true, sortOrder: true } } as const;
 
 // Read-only queries for public pages. Only active products and available
 // variants are ever exposed to the shop.
 
-export async function listProducts(opts: { featuredOnly?: boolean; category?: Category } = {}) {
+export async function listProducts(opts: { featuredOnly?: boolean; boxesOnly?: boolean } = {}) {
   const products = await db.product.findMany({
     where: {
       isActive: true,
       ...(opts.featuredOnly ? { isFeatured: true } : {}),
-      ...(opts.category ? { category: opts.category } : {}),
+      ...(opts.boxesOnly ? { category: { isBox: true } } : {}),
     },
-    include: { variants: { where: { isAvailable: true } } },
+    include: { variants: { where: { isAvailable: true } }, category: CATEGORY_FIELDS },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     take: opts.featuredOnly ? 6 : undefined,
   });
@@ -38,7 +39,7 @@ export async function listProducts(opts: { featuredOnly?: boolean; category?: Ca
 export async function getProductBySlug(slug: string) {
   const product = await db.product.findFirst({
     where: { slug, isActive: true },
-    include: { variants: { orderBy: { price: "asc" } } },
+    include: { variants: { orderBy: { price: "asc" } }, category: CATEGORY_FIELDS },
   });
   if (!product) return null;
   return {
@@ -50,6 +51,7 @@ export async function getProductBySlug(slug: string) {
       price: v.price.toString(),
       isAvailable: v.isAvailable,
       imageUrl: v.imageUrl,
+      contents: v.contents,
     })),
   };
 }

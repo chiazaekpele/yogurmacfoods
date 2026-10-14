@@ -3,13 +3,21 @@
 import { useActionState, useState } from "react";
 import { saveProductAction, type SaveState } from "@/app/admin/(panel)/products/actions";
 import { uploadImage } from "@/lib/admin/upload-client";
-import { CATEGORIES, CATEGORY_LABELS, slugify } from "@/lib/admin/product-meta";
+import type { CategoryOption } from "@/lib/admin/product-meta";
 
-type Variant = { key: string; id?: string; flavour: string; size: string; price: string; isAvailable: boolean; imageUrl: string | null };
+type Variant = {
+  key: string;
+  id?: string;
+  flavour: string;
+  size: string;
+  price: string;
+  isAvailable: boolean;
+  imageUrl: string | null;
+  contents: string;
+};
 export type ProductFormValue = {
   name: string;
-  slug: string;
-  category: (typeof CATEGORIES)[number];
+  categoryId: string;
   description: string;
   images: string[];
   isFeatured: boolean;
@@ -17,19 +25,25 @@ export type ProductFormValue = {
   variants: Omit<Variant, "key">[];
 };
 
+const NEW = "__new";
+// Rows from the server get index keys (the same on server and client, so
+// hydration matches); rows added in the browser get fresh ones.
 let nextKey = 0;
-const key = () => `v${nextKey++}`;
+const key = () => `new${nextKey++}`;
+const blankVariant = (isBox: boolean): Variant => ({ key: key(), flavour: "", size: isBox ? "Box" : "", price: "", isAvailable: true, imageUrl: null, contents: "" });
 
-export function ProductForm({ productId, initial }: { productId: string | null; initial: ProductFormValue }) {
+export function ProductForm({ productId, initial, categories }: { productId: string | null; initial: ProductFormValue; categories: CategoryOption[] }) {
   const [state, action, pending] = useActionState<SaveState, FormData>(saveProductAction.bind(null, productId), null);
-  const [v, setV] = useState({ ...initial, variants: initial.variants.map((x) => ({ ...x, key: key() })) });
-  const [slugTouched, setSlugTouched] = useState(!!productId);
+  const [v, setV] = useState({ ...initial, variants: initial.variants.map((x, i) => ({ ...x, key: `v${i}` })) });
+  const [newCategory, setNewCategory] = useState({ name: "", isBox: false });
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   const set = <K extends keyof typeof v>(k: K, value: (typeof v)[K]) => setV((s) => ({ ...s, [k]: value }));
   const setVariant = (i: number, patch: Partial<Variant>) => set("variants", v.variants.map((x, j) => (j === i ? { ...x, ...patch } : x)));
+  const isNewCategory = v.categoryId === NEW;
+  const isBox = isNewCategory ? newCategory.isBox : !!categories.find((c) => c.id === v.categoryId)?.isBox;
 
   async function upload(files: FileList | null) {
     if (!files?.length) return;
@@ -57,14 +71,33 @@ export function ProductForm({ productId, initial }: { productId: string | null; 
 
   const payload = JSON.stringify({
     name: v.name,
-    slug: v.slug,
-    category: v.category,
+    categoryId: isNewCategory ? null : v.categoryId || null,
+    newCategory: isNewCategory ? newCategory : null,
     description: v.description,
     images: v.images,
     isFeatured: v.isFeatured,
     isActive: v.isActive,
-    variants: v.variants.map(({ key: _k, ...x }) => x),
+    variants: v.variants.map(({ key: _k, ...x }) => ({ ...x, size: isBox ? x.size || "Box" : x.size, contents: isBox ? x.contents : "" })),
   });
+
+  const photoSelect = (x: Variant, i: number) => (
+    <div className="field" style={{ marginTop: 0 }}>
+      <label htmlFor={`photo-${x.key}`}>Photo</label>
+      <select id={`photo-${x.key}`} value={x.imageUrl ?? ""} onChange={(e) => setVariant(i, { imageUrl: e.target.value || null })} disabled={!v.images.length}>
+        <option value="">Main photo</option>
+        {v.images.map((url, n) => (
+          <option key={url} value={url}>
+            Photo {n + 1}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+  const removeButton = (i: number) => (
+    <button type="button" className="btn btn-sm btn-danger" disabled={v.variants.length === 1} onClick={() => set("variants", v.variants.filter((_, j) => j !== i))}>
+      Remove
+    </button>
+  );
 
   return (
     <form action={action} className="stack">
@@ -76,44 +109,37 @@ export function ProductForm({ productId, initial }: { productId: string | null; 
       )}
 
       <div className="card">
-        <div className="grid grid-2">
-          <div className="field">
-            <label htmlFor="name">Product name</label>
-            <input
-              id="name"
-              type="text"
-              required
-              maxLength={120}
-              value={v.name}
-              onChange={(e) => setV((s) => ({ ...s, name: e.target.value, slug: slugTouched ? s.slug : slugify(e.target.value) }))}
-            />
-          </div>
-          <div className="field" style={{ marginTop: 0 }}>
-            <label htmlFor="slug">Web address</label>
-            <input
-              id="slug"
-              type="text"
-              required
-              maxLength={80}
-              value={v.slug}
-              onChange={(e) => {
-                setSlugTouched(true);
-                set("slug", slugify(e.target.value));
-              }}
-            />
-            <span className="hint">yogurmacfoods.com/products/{v.slug || "…"}</span>
-          </div>
+        <div className="field">
+          <label htmlFor="name">Product name</label>
+          <input id="name" type="text" required maxLength={120} value={v.name} onChange={(e) => set("name", e.target.value)} />
         </div>
         <div className="field">
           <label htmlFor="category">Category</label>
-          <select id="category" value={v.category} onChange={(e) => set("category", e.target.value as ProductFormValue["category"])}>
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {CATEGORY_LABELS[c]}
+          <select id="category" value={v.categoryId} onChange={(e) => set("categoryId", e.target.value)}>
+            {!v.categoryId && <option value="">Choose a category</option>}
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+                {c.isBox ? " (boxes with tiers)" : ""}
               </option>
             ))}
+            <option value={NEW}>New category…</option>
           </select>
         </div>
+        {isNewCategory && (
+          <div className="subcard">
+            <div className="field">
+              <label htmlFor="new-category">New category name</label>
+              <input id="new-category" type="text" maxLength={60} value={newCategory.name} onChange={(e) => setNewCategory((c) => ({ ...c, name: e.target.value }))} placeholder="e.g. Breakfast Packages" />
+            </div>
+            <label className="check" style={{ marginTop: 12 }}>
+              <input type="checkbox" checked={newCategory.isBox} onChange={(e) => setNewCategory((c) => ({ ...c, isBox: e.target.checked }))} /> Sold as boxes with tiers
+            </label>
+            <p className="hint" style={{ marginTop: 4 }}>
+              Box categories show tiers with their contents, can be delivered daily, and count towards the Ythirst boxes counter.
+            </p>
+          </div>
+        )}
         <div className="field">
           <label htmlFor="description">Description</label>
           <textarea id="description" required maxLength={2000} value={v.description} onChange={(e) => set("description", e.target.value)} />
@@ -177,57 +203,76 @@ export function ProductForm({ productId, initial }: { productId: string | null; 
         {uploadError && <p className="err">{uploadError}</p>}
       </div>
 
-      <div className="card">
-        <h2 className="h2">{v.category === "WELLNESS_BOX" ? "Tiers and prices" : "Flavours, sizes and prices"}</h2>
-        <p className="hint">Each row is one thing a customer can buy. Price changes don’t affect past orders.</p>
-        {v.variants.map((x, i) => (
-          <div className="variant-row" key={x.key}>
-            <div className="field">
-              <label htmlFor={`flavour-${x.key}`}>{v.category === "WELLNESS_BOX" ? "Tier" : "Flavour"}</label>
-              <input id={`flavour-${x.key}`} type="text" required maxLength={60} value={x.flavour} onChange={(e) => setVariant(i, { flavour: e.target.value })} />
+      {isBox ? (
+        <div className="card">
+          <h2 className="h2">Tiers</h2>
+          <p className="hint">Each tier is one box a customer can buy. List what’s in it, one item per line; customers see this when they pick the tier. Price changes don’t affect past orders.</p>
+          {v.variants.map((x, i) => (
+            <div className="subcard" key={x.key} style={{ marginTop: 14 }}>
+              <div className="row-between" style={{ marginBottom: 10 }}>
+                <h3 className="h3">Tier {i + 1}{x.flavour ? `: ${x.flavour}` : ""}</h3>
+                {removeButton(i)}
+              </div>
+              <div className="grid grid-3">
+                <div className="field">
+                  <label htmlFor={`flavour-${x.key}`}>Tier name</label>
+                  <input id={`flavour-${x.key}`} type="text" required maxLength={60} value={x.flavour} onChange={(e) => setVariant(i, { flavour: e.target.value })} placeholder="e.g. Gold (Premium)" />
+                </div>
+                <div className="field">
+                  <label htmlFor={`price-${x.key}`}>Price per box (₦)</label>
+                  <input id={`price-${x.key}`} type="number" required min="1" step="0.01" value={x.price} onChange={(e) => setVariant(i, { price: e.target.value })} />
+                </div>
+                {photoSelect(x, i)}
+              </div>
+              <div className="field" style={{ marginTop: 14 }}>
+                <label htmlFor={`contents-${x.key}`}>What’s in the box</label>
+                <textarea
+                  id={`contents-${x.key}`}
+                  maxLength={2000}
+                  value={x.contents}
+                  onChange={(e) => setVariant(i, { contents: e.target.value })}
+                  placeholder={"Greek yogurt parfait\nCranola granola jar\n2 Ridi energy bars"}
+                />
+              </div>
+              <label className="check" style={{ marginTop: 10 }}>
+                <input type="checkbox" checked={x.isAvailable} onChange={(e) => setVariant(i, { isAvailable: e.target.checked })} /> Available
+              </label>
             </div>
-            <div className="field" style={{ marginTop: 0 }}>
-              <label htmlFor={`size-${x.key}`}>{v.category === "WELLNESS_BOX" ? "Box" : "Size"}</label>
-              <input id={`size-${x.key}`} type="text" required maxLength={40} value={x.size} onChange={(e) => setVariant(i, { size: e.target.value })} />
+          ))}
+          <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 14 }} onClick={() => set("variants", [...v.variants, blankVariant(true)])}>
+            Add tier
+          </button>
+        </div>
+      ) : (
+        <div className="card">
+          <h2 className="h2">Flavours, sizes and prices</h2>
+          <p className="hint">Each row is one thing a customer can buy. Price changes don’t affect past orders.</p>
+          {v.variants.map((x, i) => (
+            <div className="variant-row" key={x.key}>
+              <div className="field">
+                <label htmlFor={`flavour-${x.key}`}>Flavour</label>
+                <input id={`flavour-${x.key}`} type="text" required maxLength={60} value={x.flavour} onChange={(e) => setVariant(i, { flavour: e.target.value })} />
+              </div>
+              <div className="field" style={{ marginTop: 0 }}>
+                <label htmlFor={`size-${x.key}`}>Size</label>
+                <input id={`size-${x.key}`} type="text" required maxLength={40} value={x.size} onChange={(e) => setVariant(i, { size: e.target.value })} />
+              </div>
+              <div className="field" style={{ marginTop: 0 }}>
+                <label htmlFor={`price-${x.key}`}>Price (₦)</label>
+                <input id={`price-${x.key}`} type="number" required min="1" step="0.01" value={x.price} onChange={(e) => setVariant(i, { price: e.target.value })} />
+              </div>
+              {photoSelect(x, i)}
+              <label className="check" style={{ paddingBottom: 10 }}>
+                <input type="checkbox" checked={x.isAvailable} onChange={(e) => setVariant(i, { isAvailable: e.target.checked })} /> Available
+              </label>
+              <div style={{ paddingBottom: 6 }}>{removeButton(i)}</div>
             </div>
-            <div className="field" style={{ marginTop: 0 }}>
-              <label htmlFor={`price-${x.key}`}>Price (₦)</label>
-              <input id={`price-${x.key}`} type="number" required min="1" step="0.01" value={x.price} onChange={(e) => setVariant(i, { price: e.target.value })} />
-            </div>
-            <div className="field" style={{ marginTop: 0 }}>
-              <label htmlFor={`photo-${x.key}`}>Photo</label>
-              <select id={`photo-${x.key}`} value={x.imageUrl ?? ""} onChange={(e) => setVariant(i, { imageUrl: e.target.value || null })} disabled={!v.images.length}>
-                <option value="">Main photo</option>
-                {v.images.map((url, n) => (
-                  <option key={url} value={url}>
-                    Photo {n + 1}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <label className="check" style={{ paddingBottom: 10 }}>
-              <input type="checkbox" checked={x.isAvailable} onChange={(e) => setVariant(i, { isAvailable: e.target.checked })} /> Available
-            </label>
-            <button
-              type="button"
-              className="btn btn-sm btn-danger"
-              style={{ marginBottom: 6 }}
-              disabled={v.variants.length === 1}
-              onClick={() => set("variants", v.variants.filter((_, j) => j !== i))}
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          style={{ marginTop: 12 }}
-          onClick={() => set("variants", [...v.variants, { key: key(), flavour: "", size: "", price: "", isAvailable: true, imageUrl: null }])}
-        >
-          {v.category === "WELLNESS_BOX" ? "Add tier" : "Add flavour and size"}
-        </button>
-      </div>
+          ))}
+          <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={() => set("variants", [...v.variants, blankVariant(false)])}>
+            Add flavour and size
+          </button>
+        </div>
+      )}
 
       <div className="row">
         <button className="btn" disabled={pending || uploading}>

@@ -73,7 +73,7 @@ export async function saveProductAction(productId: string | null, _prev: SaveSta
   const parsed = productSchema.safeParse(payload);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
-    const where = issue?.path[0] === "variants" && typeof issue.path[1] === "number" ? ` (flavour and size row ${issue.path[1] + 1})` : "";
+    const where = issue?.path[0] === "variants" && typeof issue.path[1] === "number" ? ` (option ${issue.path[1] + 1})` : "";
     return { error: `${issue?.message ?? "Please check the form."}${where}` };
   }
 
@@ -84,12 +84,11 @@ export async function saveProductAction(productId: string | null, _prev: SaveSta
     if (err instanceof ProductSaveError) return { error: err.message };
     throw err;
   }
-  revalidateShopProduct(parsed.data.slug, result.oldSlug);
+  revalidateShopProduct(result.slug);
   const msg = [`${parsed.data.name} was saved.`, ...result.notices].join(" ");
   redirect(`${LIST}?ok=${encodeURIComponent(msg)}`);
 }
 
-function revalidateShopProduct(slug: string, oldSlug?: string | null) {
+function revalidateShopProduct(slug: string) {
   for (const p of ["/", "/products", "/impact", `/products/${slug}`]) revalidatePath(p);
-  if (oldSlug && oldSlug !== slug) revalidatePath(`/products/${oldSlug}`);
 }

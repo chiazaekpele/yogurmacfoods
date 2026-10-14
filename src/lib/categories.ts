@@ -1,19 +1,14 @@
-import type { Category } from "@/generated/prisma/enums";
+// Browser-safe catalogue types (no database imports).
 
-// Browser-safe catalogue types and labels (no database imports).
-
-export const CATEGORY_LABELS: Record<Category, string> = {
-  YOGURT: "Greek Yogurt",
-  GRANOLA: "Granola",
-  ENERGY_BAR: "Energy Bars",
-  WELLNESS_BOX: "Wellness Boxes",
-};
+// Categories are managed in the admin. Box categories sell tiers with
+// contents, one box or one a day for N days.
+export type CategoryInfo = { name: string; slug: string; isBox: boolean; sortOrder: number };
 
 export type ProductSummary = {
   id: string;
   name: string;
   slug: string;
-  category: Category;
+  category: CategoryInfo;
   image: string | null;
   fromPrice: string | null;
   sizeCount: number;

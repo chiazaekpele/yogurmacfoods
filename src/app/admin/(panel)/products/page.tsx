@@ -5,7 +5,6 @@ import { PageHead } from "@/components/admin/PageHead";
 import { SubmitButton } from "@/components/admin/SubmitButton";
 import { db } from "@/lib/db";
 import { formatNaira } from "@/lib/money";
-import { CATEGORY_LABELS } from "@/lib/admin/products";
 import { requireAdmin } from "@/lib/admin/session";
 import { deleteProduct, toggleProduct } from "./actions";
 
@@ -26,13 +25,16 @@ function Toggle({ id, field, on, label }: { id: string; field: string; on: boole
 export default async function ProductsPage({ searchParams }: PageProps<"/admin/products">) {
   await requireAdmin();
   const products = await db.product.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-    include: { variants: { select: { price: true, isAvailable: true } } },
+    orderBy: [{ category: { sortOrder: "asc" } }, { sortOrder: "asc" }, { createdAt: "asc" }],
+    include: { variants: { select: { price: true, isAvailable: true } }, category: { select: { name: true, isBox: true } } },
   });
 
   return (
     <div>
-      <PageHead title="Products" lede="Everything customers can buy. Hidden products disappear from the shop straight away.">
+      <PageHead title="Products & boxes" lede="Everything customers can buy. Hidden products disappear from the shop straight away.">
+        <Link className="btn btn-ghost" href="/admin/products/categories">
+          Categories
+        </Link>
         <Link className="btn" href="/admin/products/new">
           Add product
         </Link>
@@ -44,7 +46,7 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
             <tr>
               <th>Product</th>
               <th>Category</th>
-              <th className="num">Variants</th>
+              <th className="num">Options</th>
               <th className="num">From</th>
               <th>In shop</th>
               <th>Featured</th>
@@ -59,12 +61,12 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
                 <tr key={p.id}>
                   <td>
                     <strong>{p.name}</strong>
-                    <div className="small muted">/{p.slug}</div>
                   </td>
-                  <td>{CATEGORY_LABELS[p.category]}</td>
+                  <td>{p.category.name}</td>
                   <td className="num">
                     {available.length}
                     {available.length !== p.variants.length && <span className="muted"> / {p.variants.length}</span>}
+                    <span className="muted">{p.category.isBox ? " tiers" : ""}</span>
                   </td>
                   <td className="num">{from ? formatNaira(from.toString()) : "—"}</td>
                   <td>

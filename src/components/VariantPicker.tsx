@@ -6,7 +6,7 @@ import { MAX_DAYS, useCart } from "@/hooks/useCart";
 import { formatNaira, fromKobo, toKobo } from "@/lib/money";
 import { Naira } from "./Naira";
 
-type Variant = { id: string; flavour: string; size: string; price: string; isAvailable: boolean; imageUrl: string | null };
+type Variant = { id: string; flavour: string; size: string; price: string; isAvailable: boolean; imageUrl: string | null; contents?: string | null };
 
 export function VariantPicker({
   product,
@@ -36,6 +36,7 @@ export function VariantPicker({
   const selected = find(flavour, size);
   const canBuy = !!selected?.isAvailable;
   const selectedImage = selected?.imageUrl ?? null;
+  const contents = isBox ? (selected?.contents ?? "").split("\n").map((l) => l.trim()).filter(Boolean) : [];
 
   useEffect(() => {
     if (selectedImage) onImage?.(selectedImage);
@@ -80,6 +81,17 @@ export function VariantPicker({
           </div>
         </div>
       ) : null}
+
+      {contents.length > 0 && (
+        <div className="box-contents">
+          <div className="opt-label">In the {flavour} box</div>
+          <ul>
+            {contents.map((c, i) => (
+              <li key={i}>{c}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {isBox && sizes.length < 2 ? null : (
       <div>

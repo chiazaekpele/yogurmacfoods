@@ -18,13 +18,19 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Category {
-  YOGURT
-  GRANOLA
-  ENERGY_BAR
-  // Wellness subscription boxes (13 Oct 2026): tiers are the variants'
-  // "flavour"; customers buy one box or one a day for N days.
-  WELLNESS_BOX
+// Product categories, managed by the owner in the admin (14 Oct 2026).
+// Box categories (e.g. wellness boxes): products are sold in tiers (the
+// variants' "flavour") with listed contents; customers buy one box or one a
+// day for N days, and every box counts towards the Ythirst counter.
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  isBox     Boolean   @default(false)
+  sortOrder Int       @default(0)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 enum OrderStatus {
@@ -77,7 +83,8 @@ model Product {
   name        String
   slug        String           @unique
   description String
-  category    Category
+  categoryId  String
+  category    Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   images      String[]
   isFeatured  Boolean          @default(false)
   isActive    Boolean          @default(true)
@@ -87,6 +94,7 @@ model Product {
   updatedAt   DateTime         @updatedAt
 
   @@index([isActive, isFeatured])
+  @@index([categoryId])
 }
 
 model ProductVariant {
@@ -99,6 +107,8 @@ model ProductVariant {
   isAvailable Boolean     @default(true)
   // The product photo shown when this option is chosen (one of Product.images).
   imageUrl    String?
+  // Box tiers: what's in the box, one item per line.
+  contents    String?
   orderItems  OrderItem[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt

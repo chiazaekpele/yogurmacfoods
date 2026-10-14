@@ -4,21 +4,20 @@ import { useState } from "react";
 import { gridClass, type ProductSummary } from "@/lib/categories";
 import { ProductCard } from "./ProductCard";
 
-const FILTERS = [
-  { value: null, label: "All" },
-  { value: "YOGURT", label: "Greek Yogurt" },
-  { value: "GRANOLA", label: "Granola" },
-  { value: "ENERGY_BAR", label: "Energy Bars" },
-  { value: "WELLNESS_BOX", label: "Wellness Boxes" },
-] as const;
-
 export function ProductFilter({ products }: { products: ProductSummary[] }) {
   const [category, setCategory] = useState<string | null>(null);
-  const shown = category ? products.filter((p) => p.category === category) : products;
+  // One chip per category that has products, in the admin's order.
+  const filters = [
+    { value: null, label: "All" },
+    ...[...new Map(products.map((p) => [p.category.slug, p.category])).values()]
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((c) => ({ value: c.slug, label: c.name })),
+  ];
+  const shown = category ? products.filter((p) => p.category.slug === category) : products;
   return (
     <>
       <div className="filter-bar" role="group" aria-label="Filter by category">
-        {FILTERS.map((f) => (
+        {filters.map((f) => (
           <button key={f.label} className="chip" aria-pressed={category === f.value} onClick={() => setCategory(f.value)}>
             {f.label}
           </button>

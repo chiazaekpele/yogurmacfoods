@@ -163,3 +163,5 @@
 .adm .side-links{display:flex;gap:14px;align-items:center;margin-top:6px}
 .adm .side-links form{margin:0}
 @media (max-width:860px){.adm .side-links{margin:0}}
+.adm .subcard{border:1px solid var(--line);border-radius:var(--radius-btn);background:var(--soft);padding:14px 16px;margin-top:14px}
+.adm h3.h3{font-weight:600;font-size:16px}

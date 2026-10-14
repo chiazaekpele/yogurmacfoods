@@ -7,21 +7,28 @@ import { LAGOS_LGAS } from "../src/lib/lgas";
 //
 // PLACEHOLDERS — every price, delivery fee and impact number below
 // is a stand-in. Products, flavours and sizes follow the supplied product photos.
-// Yogurmac must confirm the real values; the admin edits them in the staff
-// portal. Re-running this script does not overwrite edits.
+// Yogurmac must confirm the real values; the owner edits them in the admin
+// (/admin). Re-running this script does not overwrite edits.
 
 const db = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL, max: 1 }),
 });
 
+// The owner can rename, reorder and add categories in the admin.
+const CATEGORIES = [
+  { id: "cat_yogurt", name: "Greek Yogurt", slug: "greek-yogurt", isBox: false, sortOrder: 1 },
+  { id: "cat_granola", name: "Granola", slug: "granola", isBox: false, sortOrder: 2 },
+  { id: "cat_energy_bars", name: "Energy Bars", slug: "energy-bars", isBox: false, sortOrder: 3 },
+  { id: "cat_wellness_boxes", name: "Wellness Boxes", slug: "wellness-boxes", isBox: true, sortOrder: 4 },
+] as const;
+
 type SeedProduct = {
   name: string;
   slug: string;
-  category: "YOGURT" | "GRANOLA" | "ENERGY_BAR" | "WELLNESS_BOX";
+  category: (typeof CATEGORIES)[number]["slug"];
   featured?: boolean;
   description: string;
   sortOrder: number;
-  // Served from public/images/products until Cloudinary is set up.
   images: string[];
   variants: { flavour: string; size: string; price: number; imageUrl?: string }[];
 };
@@ -33,7 +40,7 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: "Greek Yogurt",
     slug: "greek-yogurt",
-    category: "YOGURT",
+    category: "greek-yogurt",
     sortOrder: 1,
     description:
       "Thick, creamy natural Greek yogurt, strained and made fresh for your order. Choose sweetened (low sugar) or unsweetened (sugar free).",
@@ -46,7 +53,7 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: "Greek Yogurt Parfait",
     slug: "greek-yogurt-parfait",
-    category: "YOGURT",
+    category: "greek-yogurt",
     sortOrder: 2,
     description:
       "Layers of our Greek yogurt with fresh apple, coconut and crunchy granola. Keep it classic, or go indulgent with chocolate and peanuts.",
@@ -59,7 +66,7 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: "Cranola High Fibre Granola",
     slug: "cranola-granola",
-    category: "GRANOLA",
+    category: "granola",
     sortOrder: 3,
     description:
       "Crunchy honey-almond granola made from whole-grain oats, coconut, almonds, dates, golden raisins and flax seeds. Sugar free, vegan friendly and preservative free.",
@@ -69,7 +76,7 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: "Ridi Energy Bar",
     slug: "ridi-energy-bar",
-    category: "ENERGY_BAR",
+    category: "energy-bars",
     sortOrder: 4,
     description:
       "Clara’s Ridi bars: crunchy, seed-packed energy bars for steady energy through a busy Lagos day. Made in small batches, fresh to order.",
@@ -79,12 +86,12 @@ const PRODUCTS: SeedProduct[] = [
       { flavour: "Chocolate", size: "55g bar", price: 900, imageUrl: `${IMG}/ridi-chocolate.jpg` },
     ],
   },
-  // Wellness subscription boxes (prices from Yogurmac, 13 Oct 2026). Tiers are
-  // the variants' "flavour"; the owner adds contents and photos in the staff portal.
+  // Wellness boxes (prices from Yogurmac, 13 Oct 2026). Tiers are the
+  // variants' "flavour"; the owner adds each tier's contents and photos in the admin.
   {
     name: "Solo Executive Wellness Box",
     slug: "solo-executive-wellness-box",
-    category: "WELLNESS_BOX",
+    category: "wellness-boxes",
     featured: false,
     sortOrder: 10,
     description: "A wellness box for one, for a busy working day. Full contents of each tier coming soon.",
@@ -98,7 +105,7 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: "Family Wellness Box",
     slug: "family-wellness-box",
-    category: "WELLNESS_BOX",
+    category: "wellness-boxes",
     featured: false,
     sortOrder: 11,
     description: "Wholesome nourishment for the whole family. Full contents of each tier coming soon.",
@@ -112,7 +119,7 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: "Corporate Catalyst Box",
     slug: "corporate-catalyst-box",
-    category: "WELLNESS_BOX",
+    category: "wellness-boxes",
     featured: false,
     sortOrder: 12,
     description: "Wellness for your whole team at work. Full contents of each tier coming soon.",
@@ -125,7 +132,7 @@ const PRODUCTS: SeedProduct[] = [
   {
     name: "Period Care Box",
     slug: "period-care-box",
-    category: "WELLNESS_BOX",
+    category: "wellness-boxes",
     featured: false,
     sortOrder: 13,
     description: "Comfort and nourishment for your period. Full contents of each size coming soon.",
@@ -138,7 +145,7 @@ const PRODUCTS: SeedProduct[] = [
 ];
 
 // Delivery fees per LGA, from Yogurmac (14 Oct 2026). The owner can change
-// them in the staff portal (Delivery fees).
+// them in the admin (Delivery fees).
 const LGA_FEES: Record<string, number> = {
   Agege: 4500, "Ajeromi-Ifelodun": 4500, Alimosho: 4200, "Amuwo-Odofin": 4200, Apapa: 4200,
   Badagry: 4300, Epe: 7500, "Eti-Osa": 5000, "Ibeju-Lekki": 7000, "Ifako-Ijaiye": 4300,
@@ -172,6 +179,10 @@ async function main() {
     return;
   }
 
+  for (const { id, ...c } of CATEGORIES) {
+    await db.category.upsert({ where: { slug: c.slug }, update: {}, create: { id, ...c } });
+  }
+
   for (const p of PRODUCTS) {
     const existing = await db.product.findUnique({ where: { slug: p.slug } });
     if (existing) continue;
@@ -179,7 +190,7 @@ async function main() {
       data: {
         name: p.name,
         slug: p.slug,
-        category: p.category,
+        category: { connect: { slug: p.category } },
         description: p.description,
         sortOrder: p.sortOrder,
         isFeatured: p.featured ?? true,

@@ -43,7 +43,7 @@ export async function quote(input: Pick<CheckoutInput, "items" | "lga">): Promis
 
   const variants = await db.productVariant.findMany({
     where: { id: { in: [...new Set([...wanted.values()].map((w) => w.variantId))] } },
-    include: { product: true },
+    include: { product: { include: { category: { select: { isBox: true } } } } },
   });
   const byId = new Map(variants.map((v) => [v.id, v]));
 
@@ -55,7 +55,7 @@ export async function quote(input: Pick<CheckoutInput, "items" | "lga">): Promis
       throw new CheckoutError(`${label} is no longer available. Please remove it from your cart.`, 422, "items");
     }
     if (quantity > 99) throw new CheckoutError("Maximum quantity per item is 99.", 422, "items");
-    if (days > 1 && v.product.category !== "WELLNESS_BOX") {
+    if (days > 1 && !v.product.category.isBox) {
       throw new CheckoutError(`${v.product.name} can’t be ordered for several days.`, 422, "items");
     }
     lines.push({

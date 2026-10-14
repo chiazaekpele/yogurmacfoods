@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductView } from "@/components/ProductView";
-import { CATEGORY_LABELS, getProductBySlug } from "@/lib/catalog";
+import { getProductBySlug } from "@/lib/catalog";
 
 export const revalidate = 60;
 
@@ -48,13 +48,13 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <ProductView
-        product={{ name: product.name, slug: product.slug, images: product.images, category: product.category }}
+        product={{ name: product.name, slug: product.slug, images: product.images, isBox: product.category.isBox }}
         variants={product.variants}
         header={
           <>
             <div>
               <div className="eyebrow">
-                <Link href="/products">Products</Link> / {CATEGORY_LABELS[product.category]}
+                <Link href="/products">Products</Link> / {product.category.name}
               </div>
               <h1 className="pd-name">{product.name}</h1>
             </div>

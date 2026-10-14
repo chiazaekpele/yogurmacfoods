@@ -11,11 +11,13 @@ async function boxesSince(since?: Date): Promise<number> {
         SELECT sum(i.quantity * i.days) AS boxes FROM "OrderItem" i
         JOIN "Order" o ON o.id = i."orderId"
         JOIN "ProductVariant" v ON v.id = i."variantId" JOIN "Product" p ON p.id = v."productId"
-        WHERE p.category = 'WELLNESS_BOX' AND o."createdAt" >= ${since}`
+        JOIN "Category" c ON c.id = p."categoryId"
+        WHERE c."isBox" AND o."createdAt" >= ${since}`
     : await db.$queryRaw<{ boxes: bigint | null }[]>`
         SELECT sum(i.quantity * i.days) AS boxes FROM "OrderItem" i
         JOIN "ProductVariant" v ON v.id = i."variantId" JOIN "Product" p ON p.id = v."productId"
-        WHERE p.category = 'WELLNESS_BOX'`;
+        JOIN "Category" c ON c.id = p."categoryId"
+        WHERE c."isBox"`;
   return Number(row?.boxes ?? 0);
 }
 

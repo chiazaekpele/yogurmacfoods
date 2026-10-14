@@ -17,7 +17,8 @@ export async function getBoxTotals(): Promise<BoxTotals> {
     FROM "OrderItem" i
     JOIN "ProductVariant" v ON v.id = i."variantId"
     JOIN "Product" p ON p.id = v."productId"
-    WHERE p.category = 'WELLNESS_BOX'`;
+    JOIN "Category" c ON c.id = p."categoryId"
+    WHERE c."isBox"`;
   const value = { boxes: Number(row?.boxes ?? 0) };
   cached = { at: Date.now(), value };
   return value;
