@@ -41,6 +41,7 @@ export async function signUp(_prev: FormState, form: FormData): Promise<FormStat
   const { data, error } = await auth.signUp.email({ name, email: addr, password: pw });
   if (error || !data?.user?.id) {
     const exists = /exist/i.test(error?.message ?? "");
+    if (!exists) console.error("Customer sign-up failed:", error);
     return exists
       ? { error: "An account with this email already exists. Sign in instead, or reset your password.", values: keep(form) }
       : { error: "We couldn’t create your account. Please try again.", values: keep(form) };
