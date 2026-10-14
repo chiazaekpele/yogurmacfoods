@@ -8,7 +8,7 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline' https://js.paystack.co${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline' https://paystack.com",
-  "img-src 'self' data: blob: https://res.cloudinary.com",
+  "img-src 'self' data: blob:",
   "font-src 'self'",
   "connect-src 'self' https://api.paystack.co",
   "frame-src https://checkout.paystack.com https://js.paystack.co",
@@ -19,9 +19,6 @@ const csp = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
-  images: {
-    remotePatterns: [{ protocol: "https", hostname: "res.cloudinary.com" }],
-  },
   // The Ythirst page and the old giving page became Business Impact (13 Oct 2026).
   async redirects() {
     return [

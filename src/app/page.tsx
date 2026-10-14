@@ -1,20 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
-import { HeroCarousel, type HeroSlide } from "@/components/HeroCarousel";
+import { HeroCarousel } from "@/components/HeroCarousel";
 import { ImpactStats } from "@/components/ImpactStats";
 import { LiveCounter } from "@/components/LiveCounter";
 import { ProductCard } from "@/components/ProductCard";
 import { gridClass, listProducts } from "@/lib/catalog";
 import { getBoxTotals } from "@/lib/giving";
+import { getHeroSlides } from "@/lib/hero";
 
 // Products and prices refresh every 60s; admin edits also trigger an immediate refresh.
 export const revalidate = 60;
-
-const HERO_SLIDES: HeroSlide[] = [
-  { src: "/images/products/parfait-classic.jpg", alt: "Yogurmac Greek yogurt parfait with apple, coconut and granola", href: "/products", position: "center 12%" },
-  { src: "/images/hero/ythirst-outreach.jpg", alt: "Children at a Ythirst outreach making heart shapes with their hands", href: "/impact#ythirst", position: "center 42%" },
-  { src: "/images/hero/ythirst-900-children.jpg", alt: "900 children and counting, supported through the Ythirst Project", href: "/impact#ythirst", fit: "contain", background: "#FDDB44" },
-];
 
 const VALUES = [
   { name: "Faith-driven", desc: "A business built on faith, run with integrity and care." },
@@ -24,12 +19,12 @@ const VALUES = [
 ];
 
 export default async function Home() {
-  const [products, totals] = await Promise.all([listProducts({ featuredOnly: true }), getBoxTotals()]);
+  const [products, totals, slides] = await Promise.all([listProducts({ featuredOnly: true }), getBoxTotals(), getHeroSlides()]);
 
   return (
     <>
       <section className="hero">
-        <HeroCarousel slides={HERO_SLIDES} sizes="100vw" />
+        <HeroCarousel slides={slides} sizes="100vw" />
         <div className="hero-caption">
           <span className="kicker">25% of our profits go to children in need</span>
           <h1 className="hero-h1">Premium Greek yogurt, granola &amp; energy bars</h1>

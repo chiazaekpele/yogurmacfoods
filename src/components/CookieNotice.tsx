@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { isAdminPage } from "@/lib/chrome";
 
 const COOKIE = "ymf_cookie_notice=1";
 
@@ -10,7 +12,8 @@ const COOKIE = "ymf_cookie_notice=1";
 export function CookieNotice() {
   const [show, setShow] = useState(false);
   useEffect(() => setShow(!document.cookie.includes(COOKIE)), []);
-  if (!show) return null;
+  const pathname = usePathname();
+  if (!show || isAdminPage(pathname)) return null;
   return (
     <div className="cookie" role="region" aria-label="Cookie notice">
       <span>

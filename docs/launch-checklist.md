@@ -1,7 +1,8 @@
 # Launch checklist
 
-Two apps share one Neon database: the shop (repo root, `yogurmacfoods.com`) and the
-staff portal (`staff/`, `staff.yogurmacfoods.com`). Order matters: the database must
+One app: the shop (repo root, `yogurmacfoods.com`), with the business owner's admin
+panel at `/admin` (14 Oct 2026). The separate staff portal (`staff/`) is on hold: its
+code is kept but it is not deployed. Order matters: the database must
 exist before the first shop build (the sitemap reads products at build time), and
 DNS must be verified before email is tested.
 
@@ -15,11 +16,11 @@ both migrations applied, catalogue seeded with the four photographed products.
 - [ ] Reset the database password (it was shared in a chat) and update every `.env` and Vercel project
 - [ ] Locally, Node must prefer IPv4 to reach Neon (`npm run dev` already does); add `&connect_timeout=30` to both URLs on slow connections
 
-## 2. Neon Auth (staff portal and customer logins)
+## 2. Neon Auth (customer and admin logins)
 
-- [ ] Neon Console → Auth: confirm email verification is **not required** (the invite link already proves the address)
-- [ ] Create the owner's account: `cd staff && npx tsx --env-file=.env scripts/create-admin.ts "Full Name" owner@email` and send them the printed link (valid 24 hours)
-- [ ] After they set a password: Neon Console → Auth → Users → their user → **Make admin** (needed to reset staff logins and end their sessions)
+- [ ] Neon Console → Auth: confirm email verification is **not required**
+- [ ] Set `ADMIN_SIGNUP_CODE` (any hard-to-guess phrase) and give it only to the owner. They create their login at `/admin` → "Create an account"
+- [ ] Once every admin has signed up, remove `ADMIN_SIGNUP_CODE` (or change it) to close admin sign-up
 
 ## 3. Services
 
@@ -28,7 +29,6 @@ both migrations applied, catalogue seeded with the four photographed products.
 | Paystack | Business account must be verified for live keys. Webhook URL: `https://<shop domain>/api/webhooks/paystack` (test and live): it confirms both orders and donations. IP list from Paystack's webhook docs. | Shop only: `PAYSTACK_SECRET_KEY`, `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`, `PAYSTACK_WEBHOOK_IPS` |
 | Resend | Add domain, put SPF/DKIM/DMARC records in HostAfrica DNS, wait for "verified" | Both apps: `RESEND_API_KEY`, `EMAIL_FROM` |
 | Upstash | One Redis database used by both apps | Both apps: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` |
-| Cloudinary | Optional for launch: the current photos ship with the shop. Needed for the admin to upload new photos. | Staff: `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` |
 | Sentry | Dropped for now | — |
 
 ## 4. Secrets to generate
@@ -37,22 +37,16 @@ both migrations applied, catalogue seeded with the four photographed products.
 changing `ORDER_LINK_SECRET` stops addresses showing on links in emails already sent.
 
 - [ ] Shop: `ORDER_LINK_SECRET`, `CRON_SECRET`
-- [ ] Both apps, same value: `REVALIDATE_SECRET`
-- [ ] Staff: `NEON_AUTH_COOKIE_SECRET`, `CRON_SECRET`
-- [ ] Shop: its own `NEON_AUTH_COOKIE_SECRET` (customer accounts), plus `NEON_AUTH_BASE_URL` (same as staff)
+- [ ] Shop: `REVALIDATE_SECRET`, `NEON_AUTH_COOKIE_SECRET`, plus `NEON_AUTH_BASE_URL=https://ep-billowing-thunder-b5lkvp0n.neonauth.c-7.us-east-2.aws.neon.tech/neondb/auth` and `ADMIN_SIGNUP_CODE`
 
-## 5. Vercel (two projects, both run functions in `cle1` next to Neon)
+## 5. Vercel (functions in `cle1` next to Neon)
 
 Shop project, root directory = repo root:
 - [ ] Env: everything above, plus `NEXT_PUBLIC_SITE_URL=https://<shop domain>`, `NEXT_PUBLIC_CONTACT_EMAIL`
 - [ ] Preview env uses **test** Paystack keys and the Neon `dev` branch, never live ones
 
-Staff project, root directory = `staff`:
-- [ ] Env from `staff/.env.example`: `NEXT_PUBLIC_SITE_URL=https://staff.<domain>`, `SHOP_URL` and `NEXT_PUBLIC_SHOP_URL=https://<shop domain>`, `NEON_AUTH_BASE_URL=https://ep-billowing-thunder-b5lkvp0n.neonauth.c-7.us-east-2.aws.neon.tech/neondb/auth`
-
-Both:
-- [ ] `vercel.json` already disables Git auto-deploys and schedules each app's daily cron; deploy manually with `vercel deploy --prod`
-- [ ] Domains: add them in Vercel, then set the records Vercel shows in HostAfrica DNS (`staff.` is a CNAME)
+- [ ] `vercel.json` already disables Git auto-deploys and schedules the daily cron; deploy manually with `vercel deploy --prod`
+- [ ] Domain: add it in Vercel, then set the records Vercel shows in HostAfrica DNS
 
 ## 6. Smoke test on the live domains
 
@@ -65,15 +59,15 @@ Shop:
 - [ ] Test-mode order for a wellness box delivered daily for 3 days: delivery fee charged × 3, order and email show "daily for 3 days", and the "boxes sold" counter on /impact and the homepage goes up by 3
 - [ ] Webhook retry: Paystack dashboard → resend event → still exactly one order
 
-Staff portal (all of this passed locally against Neon on 10 Oct 2026):
-- [ ] Owner signs in; invite a staff member; they set a password from the email
-- [ ] Staff claims the test order, reports a setback, marks it ready; staff never sees customer details
-- [ ] Owner moves it to Out for delivery (WhatsApp button opens with the message) and Delivered
+Admin (`/admin`; all of this passed locally against Neon on 14 Oct 2026):
+- [ ] Owner creates their login with the sign-up code; a wrong code is refused
+- [ ] Owner moves the test order through In production, Ready, Out for delivery (WhatsApp button opens with the message) and Delivered
+- [ ] The test customer shows under Customers with the order in their history
+- [ ] Upload a homepage image; it appears in the homepage carousel
 - [ ] Change a delivery fee and an impact number; they show on the shop within seconds
-- [ ] Deactivate the test staff member; they are signed out on their next click
 
 Then:
-- [ ] Mobile layout of both apps on a real phone
+- [ ] Mobile layout of the shop and admin on a real phone
 - [ ] Switch to live Paystack keys, one real small order, refund it from Paystack
 
 ## 7. Still needed from the client
@@ -88,11 +82,11 @@ Then:
 - A real contact inbox for `NEXT_PUBLIC_CONTACT_EMAIL`
 - HostAfrica DNS access and Paystack business account status
 
-The owner can enter prices, fees and impact numbers in the staff portal once signed
+The owner can enter prices, fees, impact numbers and homepage images in the admin once signed
 in; no code change is needed. Since 13 Oct 2026: customers need an account to pay; the
 ₦500-per-child donations are gone; 25% of profits fund Ythirst, and the live counter on
 /impact shows wellness boxes sold (each day of a daily box counts as one).
 
 Still needed for the wellness boxes: contents of each tier and photos (owner adds them in
-the staff portal), and confirmation that the delivery fee should be charged once per
+the admin, Products & boxes), and confirmation that the delivery fee should be charged once per
 delivery day for daily boxes.

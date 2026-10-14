@@ -330,6 +330,36 @@ model Customer {
   updatedAt    DateTime   @updatedAt
 }
 
+// Homepage hero carousel, managed from /admin (14 Oct 2026).
+model HeroSlide {
+  id         String   @id @default(cuid())
+  imageUrl   String
+  alt        String
+  href       String   @default("/products")
+  // CSS object-position, e.g. "center 30%".
+  position   String?
+  // "contain" shows the whole image on `background` (for graphics with text).
+  fit        String   @default("cover")
+  background String?
+  sortOrder  Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+// Images uploaded from /admin, stored in the database and served at
+// /media/<id> (no third-party image host needed).
+model MediaImage {
+  id        String   @id @default(cuid())
+  mimeType  String
+  bytes     Bytes
+  size      Int
+  fileName  String?
+  createdAt DateTime @default(now())
+}
+
 // ── Staff portal (docs/yogurmac-staff-prd.md §8, TRD §5.4) ────────────────────
 
 // Passwords and sessions live in Neon Auth (schema neon_auth); this row holds

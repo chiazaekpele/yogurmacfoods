@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { isBarePage } from "@/lib/chrome";
+import { isAdminPage, isBarePage } from "@/lib/chrome";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { Logo } from "./Logo";
 
 export function Footer() {
-  if (isBarePage(usePathname())) {
+  const pathname = usePathname();
+  if (isAdminPage(pathname)) return null;
+  if (isBarePage(pathname)) {
     return (
       <footer className="footer footer-bare">
         <Logo />

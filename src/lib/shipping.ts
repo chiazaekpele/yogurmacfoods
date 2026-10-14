@@ -15,7 +15,11 @@ export async function getShippingRates(): Promise<ShippingRates> {
   const rates: ShippingRates = Object.fromEntries(
     rows.map((r) => [r.lgaName, r.shippingFee?.toString() ?? null]),
   );
-  // The staff portal deletes this key whenever a fee changes.
+  // clearShippingCache() runs whenever the admin changes a fee.
   if (redis) await redis.set(CACHE_KEY, rates);
   return rates;
+}
+
+export async function clearShippingCache(): Promise<void> {
+  if (redis) await redis.del(CACHE_KEY).catch((err) => console.error("Shipping cache delete failed:", err));
 }

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCart } from "@/hooks/useCart";
-import { isBarePage } from "@/lib/chrome";
+import { isAdminPage, isBarePage } from "@/lib/chrome";
 import { Icon } from "./Icon";
 import { Logo } from "./Logo";
 
@@ -26,6 +26,7 @@ export function Nav() {
 
   // Pages are cached, so the header asks who is signed in after it loads.
   useEffect(() => {
+    if (isAdminPage(pathname)) return;
     fetch("/api/account/me", { cache: "no-store" })
       .then((r) => r.json())
       .then(setMe)
@@ -34,6 +35,7 @@ export function Nav() {
 
   const isCurrent = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
+  if (isAdminPage(pathname)) return null;
   if (isBarePage(pathname)) {
     return (
       <header className="header">

@@ -11,6 +11,8 @@ export async function getCustomer(): Promise<Customer | null> {
   if (!user?.id || !user.email) return null;
   const existing = await db.customer.findUnique({ where: { authUserId: user.id } });
   if (existing) return existing;
+  // Admins share the login system but are not shoppers: no Customer row for them.
+  if (await db.user.findUnique({ where: { authUserId: user.id }, select: { id: true } })) return null;
   return db.customer.upsert({
     where: { authUserId: user.id },
     update: {},
