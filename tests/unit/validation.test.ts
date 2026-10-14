@@ -9,10 +9,22 @@ describe("normaliseNigerianMobile", () => {
     expect(normaliseNigerianMobile("2349061234567")).toBe("+2349061234567");
     expect(normaliseNigerianMobile("+2347011234567")).toBe("+2347011234567");
   });
+  it("accepts the other ways people type numbers", () => {
+    expect(normaliseNigerianMobile("+234 (0) 803 123 4567")).toBe("+2348031234567");
+    expect(normaliseNigerianMobile("+234 803 123 4567")).toBe("+2348031234567");
+    expect(normaliseNigerianMobile("00234 803 123 4567")).toBe("+2348031234567");
+    expect(normaliseNigerianMobile("8031234567")).toBe("+2348031234567");
+    expect(normaliseNigerianMobile("0803.123.4567")).toBe("+2348031234567");
+    expect(normaliseNigerianMobile("0803\u00a0123\u00a04567")).toBe("+2348031234567");
+    expect(normaliseNigerianMobile(" 0915-123-4567 ")).toBe("+2349151234567");
+  });
   it("rejects landlines and malformed numbers", () => {
     expect(normaliseNigerianMobile("0123456789")).toBeNull();
     expect(normaliseNigerianMobile("0803123456")).toBeNull();
     expect(normaliseNigerianMobile("08531234567")).toBeNull();
+    expect(normaliseNigerianMobile("0803abc1234567")).toBeNull();
+    expect(normaliseNigerianMobile("+44 7911 123456")).toBeNull();
+    expect(normaliseNigerianMobile("080312345678")).toBeNull();
   });
 });
 
