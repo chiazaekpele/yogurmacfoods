@@ -44,8 +44,8 @@ export function LiveCounter({ initial }: { initial: BoxTotals }) {
   }, []);
 
   return (
-    <div className={`counter counter-single ${bump ? "counter-bump" : ""}`} aria-live="polite">
-      <div className="counter-cell">
+    <div className={`counter ${bump ? "counter-bump" : ""}`} aria-live="polite">
+      <div>
         <div className="counter-num">{totals.boxes.toLocaleString("en-NG")}</div>
         <div className="counter-lbl">{totals.boxes === 1 ? "wellness box sold" : "wellness boxes sold"}</div>
       </div>

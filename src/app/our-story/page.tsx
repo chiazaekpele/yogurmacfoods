@@ -37,7 +37,6 @@ export default function OurStoryPage() {
               <p>We make every order fresh, by hand, right here in Nigeria. There is no warehouse of stock waiting on a shelf: your yogurt, granola or energy bars are made for you after you order.</p>
               <p>Our faith shapes how we work: honest ingredients, fair dealing, and a business that gives back to the community it serves.</p>
             </div>
-            <div className="note-box">Full brand identity statement and mission copy to be supplied by Yogurmac.</div>
           </div>
         </div>
       </section>

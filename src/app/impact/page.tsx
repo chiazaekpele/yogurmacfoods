@@ -105,7 +105,7 @@ export default async function ImpactPage() {
       </section>
 
       <section className="section">
-        <div className="panel panel-leaf">
+        <div className="panel panel-leaf panel-quote">
           <div>
             <p className="lead">
               At Yogurmac Foods Limited, we bring together wholesome nourishment, thoughtful food choices and meaningful impact. Whether you are
