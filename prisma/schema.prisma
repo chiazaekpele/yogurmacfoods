@@ -22,6 +22,9 @@ enum Category {
   YOGURT
   GRANOLA
   ENERGY_BAR
+  // Wellness subscription boxes (13 Oct 2026): tiers are the variants'
+  // "flavour"; customers buy one box or one a day for N days.
+  WELLNESS_BOX
 }
 
 enum OrderStatus {
@@ -128,6 +131,7 @@ model PendingCheckout {
   shippingFee   Decimal   @db.Decimal(12, 2)
   total         Decimal   @db.Decimal(12, 2)
   accessCode    String?
+  customerId    String?
   consumedAt    DateTime?
   expiresAt     DateTime
   createdAt     DateTime  @default(now())
@@ -153,6 +157,9 @@ model Order {
   emailSent     Boolean         @default(false)
   emailError    String?
   items         OrderItem[]
+  // Set when the order was placed while signed in (required since 13 Oct 2026).
+  customerId    String?
+  customer      Customer?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
   claim         OrderClaim?
   setbacks      SetbackReport[]
   createdAt     DateTime        @default(now())
@@ -160,6 +167,7 @@ model Order {
 
   @@index([status, createdAt])
   @@index([createdAt])
+  @@index([customerId, createdAt])
   @@index([lga])
   @@index([customerPhone])
   @@index([customerName])
@@ -176,6 +184,9 @@ model OrderItem {
   flavour     String
   size        String
   quantity    Int
+  // Wellness boxes: one delivered each day for this many days (1 otherwise).
+  // Line total = unitPrice × quantity × days.
+  days        Int            @default(1)
   unitPrice   Decimal        @db.Decimal(12, 2)
 
   @@index([orderId])
@@ -287,6 +298,8 @@ model Donation {
   reference  String         @unique
   donorName  String?
   donorEmail String
+  customerId String?
+  customer   Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
   children   Int
   amount     Decimal        @db.Decimal(12, 2)
   amountPaid Decimal?       @db.Decimal(12, 2)
@@ -297,6 +310,24 @@ model Donation {
 
   @@index([status, paidAt])
   @@index([createdAt])
+  @@index([customerId])
+}
+
+// Shop customer account (13 Oct 2026). Passwords and sessions live in Neon Auth;
+// this row holds the saved checkout details.
+model Customer {
+  id           String     @id @default(cuid())
+  authUserId   String     @unique
+  email        String     @unique
+  name         String
+  phone        String?
+  lga          String?
+  exactAddress String?
+  landmark     String?
+  orders       Order[]
+  donations    Donation[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 // ── Staff portal (docs/yogurmac-staff-prd.md §8, TRD §5.4) ────────────────────

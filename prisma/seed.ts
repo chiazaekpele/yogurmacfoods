@@ -17,7 +17,8 @@ const db = new PrismaClient({
 type SeedProduct = {
   name: string;
   slug: string;
-  category: "YOGURT" | "GRANOLA" | "ENERGY_BAR";
+  category: "YOGURT" | "GRANOLA" | "ENERGY_BAR" | "WELLNESS_BOX";
+  featured?: boolean;
   description: string;
   sortOrder: number;
   // Served from public/images/products until Cloudinary is set up.
@@ -78,21 +79,77 @@ const PRODUCTS: SeedProduct[] = [
       { flavour: "Chocolate", size: "55g bar", price: 900, imageUrl: `${IMG}/ridi-chocolate.jpg` },
     ],
   },
+  // Wellness subscription boxes (prices from Yogurmac, 13 Oct 2026). Tiers are
+  // the variants' "flavour"; the owner adds contents and photos in the staff portal.
+  {
+    name: "Solo Executive Wellness Box",
+    slug: "solo-executive-wellness-box",
+    category: "WELLNESS_BOX",
+    featured: false,
+    sortOrder: 10,
+    description: "A wellness box for one, for a busy working day. Full contents of each tier coming soon.",
+    images: [],
+    variants: [
+      { flavour: "Bronze (Basic)", size: "Box", price: 15000 },
+      { flavour: "Silver (Standard)", size: "Box", price: 20000 },
+      { flavour: "Gold (Premium)", size: "Box", price: 30000 },
+    ],
+  },
+  {
+    name: "Family Wellness Box",
+    slug: "family-wellness-box",
+    category: "WELLNESS_BOX",
+    featured: false,
+    sortOrder: 11,
+    description: "Wholesome nourishment for the whole family. Full contents of each tier coming soon.",
+    images: [],
+    variants: [
+      { flavour: "Bronze (Basic)", size: "Box", price: 75000 },
+      { flavour: "Silver (Standard)", size: "Box", price: 120000 },
+      { flavour: "Gold (Premium)", size: "Box", price: 280000 },
+    ],
+  },
+  {
+    name: "Corporate Catalyst Box",
+    slug: "corporate-catalyst-box",
+    category: "WELLNESS_BOX",
+    featured: false,
+    sortOrder: 12,
+    description: "Wellness for your whole team at work. Full contents of each tier coming soon.",
+    images: [],
+    variants: [
+      { flavour: "Silver", size: "Box", price: 350000 },
+      { flavour: "Gold", size: "Box", price: 500000 },
+    ],
+  },
+  {
+    name: "Period Care Box",
+    slug: "period-care-box",
+    category: "WELLNESS_BOX",
+    featured: false,
+    sortOrder: 13,
+    description: "Comfort and nourishment for your period. Full contents of each size coming soon.",
+    images: [],
+    variants: [
+      { flavour: "Mini Box", size: "Box", price: 12000 },
+      { flavour: "Maxi Box", size: "Box", price: 20000 },
+    ],
+  },
 ];
 
-// Sample fees so checkout works locally. Production starts every fee unset (null),
-// which blocks checkout for that LGA until the admin sets it (TRD §5.7).
-const SAMPLE_FEES: Record<string, number> = {
-  Ikeja: 2000, Surulere: 2000, Mushin: 2000, Shomolu: 2000, Kosofe: 2000, "Lagos Mainland": 2000,
-  "Oshodi-Isolo": 2000, Agege: 2500, "Ifako-Ijaiye": 2500, Apapa: 2500, "Ajeromi-Ifelodun": 2500,
-  "Amuwo-Odofin": 2500, "Lagos Island": 2500, "Eti-Osa": 3000, Alimosho: 3000, Ojo: 3500,
-  Ikorodu: 3500, "Ibeju-Lekki": 4500, Epe: 5000, Badagry: 5000,
+// Delivery fees per LGA, from Yogurmac (14 Oct 2026). The owner can change
+// them in the staff portal (Delivery fees).
+const LGA_FEES: Record<string, number> = {
+  Agege: 4500, "Ajeromi-Ifelodun": 4500, Alimosho: 4200, "Amuwo-Odofin": 4200, Apapa: 4200,
+  Badagry: 4300, Epe: 7500, "Eti-Osa": 5000, "Ibeju-Lekki": 7000, "Ifako-Ijaiye": 4300,
+  Ikeja: 4000, Ikorodu: 5200, Kosofe: 3200, "Lagos Island": 4200, "Lagos Mainland": 2200,
+  Mushin: 2500, Ojo: 6800, "Oshodi-Isolo": 3200, Shomolu: 2500, Surulere: 3200,
 };
 
 const IMPACT = [
   { key: "children_reached", label: "Children reached", value: 900, sortOrder: 1 },
   { key: "campaigns_run", label: "Outreach campaigns", value: 18, sortOrder: 2 },
-  { key: "schools_visited", label: "Schools visited", value: 12, sortOrder: 3 },
+  { key: "schools_visited", label: "Schools visited", value: 4, sortOrder: 3 },
 ];
 
 async function main() {
@@ -102,7 +159,7 @@ async function main() {
     await db.lGAShippingRate.upsert({
       where: { lgaName: lga },
       update: {},
-      create: { lgaName: lga, shippingFee: production ? null : SAMPLE_FEES[lga] },
+      create: { lgaName: lga, shippingFee: LGA_FEES[lga] },
     });
   }
 
@@ -125,7 +182,7 @@ async function main() {
         category: p.category,
         description: p.description,
         sortOrder: p.sortOrder,
-        isFeatured: true,
+        isFeatured: p.featured ?? true,
         images: p.images,
         variants: { create: p.variants },
       },

@@ -15,7 +15,7 @@ both migrations applied, catalogue seeded with the four photographed products.
 - [ ] Reset the database password (it was shared in a chat) and update every `.env` and Vercel project
 - [ ] Locally, Node must prefer IPv4 to reach Neon (`npm run dev` already does); add `&connect_timeout=30` to both URLs on slow connections
 
-## 2. Neon Auth (staff portal logins)
+## 2. Neon Auth (staff portal and customer logins)
 
 - [ ] Neon Console → Auth: confirm email verification is **not required** (the invite link already proves the address)
 - [ ] Create the owner's account: `cd staff && npx tsx --env-file=.env scripts/create-admin.ts "Full Name" owner@email` and send them the printed link (valid 24 hours)
@@ -39,6 +39,7 @@ changing `ORDER_LINK_SECRET` stops addresses showing on links in emails already 
 - [ ] Shop: `ORDER_LINK_SECRET`, `CRON_SECRET`
 - [ ] Both apps, same value: `REVALIDATE_SECRET`
 - [ ] Staff: `NEON_AUTH_COOKIE_SECRET`, `CRON_SECRET`
+- [ ] Shop: its own `NEON_AUTH_COOKIE_SECRET` (customer accounts), plus `NEON_AUTH_BASE_URL` (same as staff)
 
 ## 5. Vercel (two projects, both run functions in `cle1` next to Neon)
 
@@ -60,7 +61,8 @@ Shop:
 - [ ] Test-mode card payment: lands on the order page with the address shown; confirmation email arrives with a "View your order" link
 - [ ] Same order URL without `?t=` shows the order but no address
 - [ ] Bank-transfer attempt, then cancel the popup: back on checkout with details kept
-- [ ] Test-mode donation for 2 children (₦1,000): thank-you page, receipt email, and the live counter on /partner and the homepage goes up by 2 within seconds
+- [ ] Create a customer account at checkout; it returns to checkout with details filled in. Test "forgot password" (Neon Auth sends the email)
+- [ ] Test-mode order for a wellness box delivered daily for 3 days: delivery fee charged × 3, order and email show "daily for 3 days", and the "boxes sold" counter on /impact and the homepage goes up by 3
 - [ ] Webhook retry: Paystack dashboard → resend event → still exactly one order
 
 Staff portal (all of this passed locally against Neon on 10 Oct 2026):
@@ -87,5 +89,10 @@ Then:
 - HostAfrica DNS access and Paystack business account status
 
 The owner can enter prices, fees and impact numbers in the staff portal once signed
-in; no code change is needed. Giving is fixed at ₦500 per child (confirmed 10 Oct 2026),
-one-time gifts; the live counter counts only Paystack-confirmed donations.
+in; no code change is needed. Since 13 Oct 2026: customers need an account to pay; the
+₦500-per-child donations are gone; 25% of profits fund Ythirst, and the live counter on
+/impact shows wellness boxes sold (each day of a daily box counts as one).
+
+Still needed for the wellness boxes: contents of each tier and photos (owner adds them in
+the staff portal), and confirmation that the delivery fee should be charged once per
+delivery day for daily boxes.

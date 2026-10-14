@@ -1,0 +1,6 @@
+-- AlterEnum
+ALTER TYPE "Category" ADD VALUE 'WELLNESS_BOX';
+
+-- AlterTable
+ALTER TABLE "OrderItem" ADD COLUMN     "days" INTEGER NOT NULL DEFAULT 1;
+
