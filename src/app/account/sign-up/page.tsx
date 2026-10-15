@@ -16,7 +16,7 @@ export default async function SignUpPage({ searchParams }: PageProps<"/account/s
       <p className="page-lede">
         {next.startsWith("/checkout")
           ? "You need an account to place an order. It saves your delivery details and keeps your order history in one place."
-          : "Save your delivery details and see your orders and gifts in one place."}
+          : "Save your delivery details and see your orders in one place."}
       </p>
       <div className="auth-card">
         <SignUpForm next={next} />

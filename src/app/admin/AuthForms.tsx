@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
+import { PasswordInput } from "@/components/PasswordInput";
 import { adminSignIn, adminSignUp, type AuthState } from "./actions";
 
 function Field({ name, label, type = "text", state, auto }: { name: string; label: string; type?: string; state: AuthState; auto?: string }) {
@@ -9,17 +10,21 @@ function Field({ name, label, type = "text", state, auto }: { name: string; labe
   return (
     <div className="field">
       <label htmlFor={name}>{label}</label>
-      <input
-        key={state?.values?.[name] ?? ""}
-        id={name}
-        name={name}
-        type={type}
-        autoComplete={auto}
-        defaultValue={state?.values?.[name]}
-        aria-invalid={err ? true : undefined}
-        aria-describedby={err ? `${name}-err` : undefined}
-        required
-      />
+      {type === "password" ? (
+        <PasswordInput id={name} name={name} autoComplete={auto} aria-invalid={err ? true : undefined} aria-describedby={err ? `${name}-err` : undefined} required />
+      ) : (
+        <input
+          key={state?.values?.[name] ?? ""}
+          id={name}
+          name={name}
+          type={type}
+          autoComplete={auto}
+          defaultValue={state?.values?.[name]}
+          aria-invalid={err ? true : undefined}
+          aria-describedby={err ? `${name}-err` : undefined}
+          required
+        />
+      )}
       {err && (
         <span className="err" id={`${name}-err`}>
           {err}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { type FormState, requestReset, resetPassword, saveDetails, signIn, signUp } from "@/app/account/actions";
 import { LAGOS_LGAS } from "@/lib/lgas";
+import { PasswordInput } from "./PasswordInput";
 
 function Messages({ state }: { state: FormState }) {
   if (state?.error)
@@ -21,6 +22,9 @@ function Messages({ state }: { state: FormState }) {
   return null;
 }
 
+// Passwords are never echoed back after a submission, so they need no value handling.
+const withoutType = ({ type: _t, ...rest }: React.InputHTMLAttributes<HTMLInputElement>) => rest;
+
 function Field({
   name,
   label,
@@ -34,7 +38,11 @@ function Field({
   return (
     <div className="field">
       <label htmlFor={name}>{label}</label>
-      <input {...input} key={value === undefined ? "initial" : `v:${value}`} id={name} name={name} defaultValue={value ?? input.defaultValue} aria-invalid={err ? true : undefined} aria-describedby={err ? `${name}-err` : hint ? `${name}-hint` : undefined} />
+      {input.type === "password" ? (
+        <PasswordInput {...withoutType(input)} id={name} name={name} aria-invalid={err ? true : undefined} aria-describedby={err ? `${name}-err` : hint ? `${name}-hint` : undefined} />
+      ) : (
+        <input {...input} key={value === undefined ? "initial" : `v:${value}`} id={name} name={name} defaultValue={value ?? input.defaultValue} aria-invalid={err ? true : undefined} aria-describedby={err ? `${name}-err` : hint ? `${name}-hint` : undefined} />
+      )}
       {hint && !err && (
         <span className="field-hint" id={`${name}-hint`}>
           {hint}

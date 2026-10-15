@@ -162,3 +162,7 @@
 @media (max-width:860px){.adm .side-links{margin:0}}
 .adm .subcard{border:1px solid var(--line);border-radius:var(--radius-btn);background:var(--soft);padding:14px 16px;margin-top:14px}
 .adm h3.h3{font-weight:600;font-size:16px}
+.adm .pw{position:relative}
+.adm .pw input{padding-right:48px}
+.adm .pw-toggle{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:40px;height:40px;display:grid;place-items:center;border:0;background:none;color:var(--muted);cursor:pointer}
+.adm .pw-toggle:hover{color:var(--brand)}
