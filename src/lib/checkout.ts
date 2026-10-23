@@ -80,7 +80,7 @@ export async function quote(input: Pick<CheckoutInput, "items" | "lga" | "fulfil
     });
   }
 
-  const settings = await getSiteSettings();
+  const settings = await getSiteSettings({ fresh: true });
   let shippingKobo = 0;
   if (input.fulfilment === "PICKUP") {
     if (!pickupAvailable(settings)) throw new CheckoutError("Pickup isn’t available right now. Please choose delivery.", 422, "fulfilment");

@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Checkout", robots: { index: false } 
 export default async function CheckoutPage() {
   // Paying requires an account (13 Oct 2026).
   const customer = await requireCustomer("/checkout");
-  const [rates, settings] = await Promise.all([getShippingRates(), getSiteSettings()]);
+  const [rates, settings] = await Promise.all([getShippingRates(), getSiteSettings({ fresh: true })]);
   const lgas = LAGOS_LGAS.map((name) => ({ name, fee: rates[name] ?? null }));
   return (
     <>

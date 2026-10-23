@@ -33,13 +33,14 @@ const DEFAULTS: SiteSettings = {
   linkedin: null,
 };
 
-// Read on every page (footer) and at checkout, so kept for a minute per server
-// instance; saving in the admin clears it on that instance at once.
+// Read on every page (footer), so kept for a minute per server instance;
+// saving in the admin clears it on that instance at once. Checkout passes
+// fresh: true so prices always use the current VAT rate and pickup setting.
 const TTL_MS = 60_000;
 let cached: { at: number; value: SiteSettings } | null = null;
 
-export async function getSiteSettings(): Promise<SiteSettings> {
-  if (cached && Date.now() - cached.at < TTL_MS) return cached.value;
+export async function getSiteSettings(opts: { fresh?: boolean } = {}): Promise<SiteSettings> {
+  if (!opts.fresh && cached && Date.now() - cached.at < TTL_MS) return cached.value;
   const row = await db.siteSettings.findUnique({ where: { id: "site" } });
   const value: SiteSettings = row
     ? {
