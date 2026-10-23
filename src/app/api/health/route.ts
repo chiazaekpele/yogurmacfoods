@@ -22,5 +22,9 @@ export async function GET() {
     }
   }
   const healthy = !Object.values(checks).includes("down");
-  return NextResponse.json({ status: healthy ? "ok" : "degraded", checks }, { status: healthy ? 200 : 503 });
+  // Which kind of Paystack key is set (never the key itself), so a deploy can
+  // be checked for live payments.
+  const key = process.env.PAYSTACK_SECRET_KEY ?? "";
+  const paystack = key.startsWith("sk_live_") ? "live" : key.startsWith("sk_test_") ? "test" : "not_configured";
+  return NextResponse.json({ status: healthy ? "ok" : "degraded", checks, paystack }, { status: healthy ? 200 : 503 });
 }
