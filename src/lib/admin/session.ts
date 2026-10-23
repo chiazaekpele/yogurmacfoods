@@ -11,13 +11,24 @@ const TOUCH_EVERY_MS = 10 * 60 * 1000; // at most one activity write per 10 minu
 // idle for 8 hours counts as signed out everywhere, so the login page and the
 // panel always agree (they used to disagree and redirect in a loop).
 async function adminSession(): Promise<{ user: User | null; expired: boolean }> {
-  const { data: session } = await auth.getSession();
+  const session = await readSession();
   const authUserId = session?.user?.id;
   if (!authUserId) return { user: null, expired: false };
   const user = await db.user.findUnique({ where: { authUserId } });
   if (user?.role !== "ADMIN" || !user.isActive) return { user: null, expired: false };
   const last = user.lastActiveAt?.getTime() ?? Date.now();
   return Date.now() - last > IDLE_LIMIT_MS ? { user: null, expired: true } : { user, expired: false };
+}
+
+// A login that can't be read (e.g. Neon Auth unreachable) counts as signed out,
+// so the visitor gets the login form rather than the error page.
+async function readSession() {
+  try {
+    return (await auth.getSession()).data;
+  } catch (err) {
+    console.error("Admin session could not be read:", err);
+    return null;
+  }
 }
 
 export async function getAdmin(): Promise<User | null> {

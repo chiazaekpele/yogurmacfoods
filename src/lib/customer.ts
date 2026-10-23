@@ -6,7 +6,14 @@ import { db } from "./db";
 // The signed-in customer, or null. A Neon Auth login with no Customer row yet
 // (e.g. the row write failed after sign-up) gets one on first use.
 export async function getCustomer(): Promise<Customer | null> {
-  const { data: session } = await auth.getSession();
+  let session;
+  try {
+    session = (await auth.getSession()).data;
+  } catch (err) {
+    // Treat an unreadable login as signed out rather than showing the error page.
+    console.error("Customer session could not be read:", err);
+    return null;
+  }
   const user = session?.user;
   if (!user?.id || !user.email) return null;
   const existing = await db.customer.findUnique({ where: { authUserId: user.id } });
