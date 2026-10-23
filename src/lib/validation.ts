@@ -25,19 +25,30 @@ export const cartItemSchema = z.strictObject({
   days: z.number().int().min(1).max(MAX_DAYS).optional().default(1),
 });
 
-export const checkoutSchema = z.strictObject({
+export const FULFILMENTS = ["DELIVERY", "PICKUP"] as const;
+
+export const checkoutSchema = z
+  .strictObject({
   customerName: name,
   customerEmail: email,
   customerPhone: phoneSchema,
-  lga: z.enum(LAGOS_LGAS, { message: "Choose your LGA" }),
-  exactAddress: z.string().trim().min(5, "Enter your full delivery address").max(300),
+  // Delivery to an address, or pickup from Yogurmac (22 Oct 2026).
+  fulfilment: z.enum(FULFILMENTS).default("DELIVERY"),
+  // Required for delivery only (checked below).
+  lga: z.union([z.enum(LAGOS_LGAS, { message: "Choose your LGA" }), z.literal("")]).default(""),
+  exactAddress: z.string().trim().max(300).default(""),
   landmark: z.string().trim().max(150).optional().transform((v) => v || undefined),
   items: z.array(cartItemSchema).min(1, "Your cart is empty").max(50),
   // Total the customer was shown, in kobo. Used only to detect price drift.
   expectedTotalKobo: z.number().int().nonnegative(),
   // Required tick box at checkout (Yogurmac's terms, 14 Oct 2026).
   acceptTerms: z.literal(true, { message: "Please agree to the Terms & Conditions and Privacy Policy" }),
-});
+  })
+  .superRefine((v, ctx) => {
+    if (v.fulfilment !== "DELIVERY") return;
+    if (!v.lga) ctx.addIssue({ code: "custom", path: ["lga"], message: "Choose your LGA" });
+    if (v.exactAddress.length < 5) ctx.addIssue({ code: "custom", path: ["exactAddress"], message: "Enter your full delivery address" });
+  });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 

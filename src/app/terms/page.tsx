@@ -34,8 +34,8 @@ export default function TermsPage() {
           <h2>2. Payment</h2>
           <ul>
             <li>
-              <strong>Paid upfront:</strong> every order, including every day of a daily wellness box, is paid in full at checkout. There are
-              no automatic renewals or repeat charges.
+              <strong>Paid upfront:</strong> every order, including every day of a daily wellness box, is paid in full at checkout, with VAT
+              added at the current rate. There are no automatic renewals or repeat charges.
             </li>
             <li>
               <strong>Payment processing:</strong> payments are processed securely through our third-party payment gateway (Paystack). We do
@@ -46,8 +46,8 @@ export default function TermsPage() {
           <h2>3. Delivery, schedules and logistics for yogurt and other perishables (Lagos State only)</h2>
           <ul>
             <li>
-              <strong>Delivery schedule:</strong> orders are usually ready in 2–3 working days. A daily wellness box is delivered once a day
-              for the number of days you chose.
+              <strong>Delivery schedule:</strong> every order is made fresh, and we will contact you when it is on its way. A daily wellness
+              box is delivered once a day for the number of days you chose; the delivery fee is charged once per order.
             </li>
             <li>
               <strong>Delivery areas:</strong> we currently deliver strictly within Lagos State. Please make sure your delivery address and

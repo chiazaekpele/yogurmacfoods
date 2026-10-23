@@ -69,7 +69,7 @@ export function CartView() {
           <span>{formatNaira(fromKobo(subtotalKobo))}</span>
         </div>
         <div className="sum-row" style={{ color: "var(--muted)" }}>
-          <span>Delivery</span>
+          <span>Delivery and VAT</span>
           <span>Calculated at checkout</span>
         </div>
         <Link className="btn btn-block" href="/checkout" style={{ marginTop: 16 }}>

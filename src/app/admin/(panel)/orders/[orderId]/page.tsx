@@ -8,7 +8,7 @@ import { SubmitButton } from "@/components/admin/SubmitButton";
 import { db } from "@/lib/db";
 import { formatDateTime } from "@/lib/lagos-time";
 import { formatNaira } from "@/lib/money";
-import { STATUS_LABELS, STATUS_ORDER } from "@/lib/admin/order-status";
+import { STATUS_LABELS, statusLabel, stepsFor } from "@/lib/admin/order-status";
 import { nextAdminStatus, previousStatus, whatsappDeliveryLink } from "@/lib/admin/orders";
 import { requireAdmin } from "@/lib/admin/session";
 import { moveOrder } from "./actions";
@@ -39,9 +39,12 @@ export default async function OrderDetail({ params, searchParams }: PageProps<"/
   const actorIds = [...new Set(history.map((h) => h.actorId).filter((x): x is string => !!x))];
   const actors = new Map((await db.user.findMany({ where: { id: { in: actorIds } }, select: { id: true, name: true } })).map((u) => [u.id, u.name]));
 
-  const next = nextAdminStatus(order.status);
-  const back = previousStatus(order.status);
-  const reached = STATUS_ORDER.indexOf(order.status);
+  const pickup = order.fulfilment === "PICKUP";
+  const label = (s: typeof order.status) => statusLabel(s, order.fulfilment);
+  const next = nextAdminStatus(order.status, order.fulfilment);
+  const back = previousStatus(order.status, order.fulfilment);
+  const steps = stepsFor(order.fulfilment);
+  const reached = steps.indexOf(order.status);
 
   return (
     <div className="stack">
@@ -54,34 +57,35 @@ export default async function OrderDetail({ params, searchParams }: PageProps<"/
       <Flash searchParams={searchParams} />
 
       <div className="steps" aria-label="Order progress">
-        {STATUS_ORDER.map((s, i) => (
+        {steps.map((s, i) => (
           <div key={s} className={`step ${i < reached ? "done" : i === reached ? "now" : ""}`}>
-            {STATUS_LABELS[s]}
+            {label(s)}
           </div>
         ))}
       </div>
 
       <div className="card">
         <h2 className="h2">Update status</h2>
-        {!next && <p className="muted">Delivered. Nothing left to do.</p>}
+        {pickup && <p className="muted">Pickup order: the customer collects it, so there is no delivery step.</p>}
+        {!next && <p className="muted">{pickup ? "Collected" : "Delivered"}. Nothing left to do.</p>}
         <div className="row" style={{ marginTop: 10 }}>
           {next && (
             <form action={moveOrder}>
               <input type="hidden" name="orderId" value={order.orderId} />
               <input type="hidden" name="from" value={order.status} />
               <input type="hidden" name="to" value={next} />
-              <SubmitButton pendingText="Updating…">Move to {STATUS_LABELS[next]}</SubmitButton>
+              <SubmitButton pendingText="Updating…">Move to {label(next)}</SubmitButton>
             </form>
           )}
-          {order.status === "OUT_FOR_DELIVERY" && (
+          {order.status === (pickup ? "READY" : "OUT_FOR_DELIVERY") && (
             <a className="btn btn-gold" href={whatsappDeliveryLink(order)} target="_blank" rel="noopener noreferrer">
-              Send WhatsApp Delivery Notice
+              {pickup ? "Send WhatsApp “Ready to Collect” Message" : "Send WhatsApp Delivery Notice"}
             </a>
           )}
         </div>
         {back && (
           <details style={{ marginTop: 16 }}>
-            <summary className="small">Made a mistake? Move back to {STATUS_LABELS[back]}</summary>
+            <summary className="small">Made a mistake? Move back to {label(back)}</summary>
             <form action={moveOrder} style={{ marginTop: 10 }}>
               <input type="hidden" name="orderId" value={order.orderId} />
               <input type="hidden" name="from" value={order.status} />
@@ -109,12 +113,18 @@ export default async function OrderDetail({ params, searchParams }: PageProps<"/
           <p>
             <a href={`tel:${order.customerPhone}`}>{order.customerPhone}</a> · <a href={`mailto:${order.customerEmail}`}>{order.customerEmail}</a>
           </p>
-          <p style={{ marginTop: 8 }}>
-            {order.exactAddress}
-            {order.landmark && <span className="muted"> (near {order.landmark})</span>}
-            <br />
-            {order.lga}
-          </p>
+          {pickup ? (
+            <p style={{ marginTop: 8 }}>
+              <span className="badge b-ready">Pickup</span> Collecting from {order.exactAddress}
+            </p>
+          ) : (
+            <p style={{ marginTop: 8 }}>
+              {order.exactAddress}
+              {order.landmark && <span className="muted"> (near {order.landmark})</span>}
+              <br />
+              {order.lga}
+            </p>
+          )}
           <p className="small muted" style={{ marginTop: 8 }}>
             Confirmation email: {order.emailSent ? "sent" : order.emailError ? `failed (${order.emailError})` : "not sent yet"}
           </p>
@@ -135,9 +145,15 @@ export default async function OrderDetail({ params, searchParams }: PageProps<"/
             <span>{formatNaira(order.subtotal.toString())}</span>
           </div>
           <div className="row-between">
-            <span>Delivery ({order.lga})</span>
-            <span>{formatNaira(order.shippingFee.toString())}</span>
+            <span>{pickup ? "Pickup" : `Delivery (${order.lga})`}</span>
+            <span>{pickup ? "Free" : formatNaira(order.shippingFee.toString())}</span>
           </div>
+          {order.vat.gt(0) && (
+            <div className="row-between">
+              <span>VAT ({order.vatRate.toNumber()}%)</span>
+              <span>{formatNaira(order.vat.toString())}</span>
+            </div>
+          )}
           <div className="row-between" style={{ fontWeight: 700, borderTop: "1px solid var(--line)", marginTop: 6, paddingTop: 6 }}>
             <span>Total</span>
             <span>{formatNaira(order.total.toString())}</span>

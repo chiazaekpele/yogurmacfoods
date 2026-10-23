@@ -52,6 +52,13 @@ describe("checkoutSchema", () => {
     expect(checkoutSchema.safeParse({ ...valid, total: 5 }).success).toBe(false);
     expect(checkoutSchema.safeParse({ ...valid, items: [{ variantId: "v1", quantity: 1, unitPrice: "1" }] }).success).toBe(false);
   });
+  it("needs an address for delivery but not for pickup", () => {
+    expect(checkoutSchema.parse(valid).fulfilment).toBe("DELIVERY");
+    expect(checkoutSchema.safeParse({ ...valid, lga: "", exactAddress: "" }).success).toBe(false);
+    const pickup = checkoutSchema.parse({ ...valid, fulfilment: "PICKUP", lga: "", exactAddress: "" });
+    expect(pickup.fulfilment).toBe("PICKUP");
+    expect(checkoutSchema.safeParse({ ...valid, fulfilment: "COURIER" }).success).toBe(false);
+  });
   it("requires agreeing to the terms", () => {
     expect(checkoutSchema.safeParse({ ...valid, acceptTerms: false }).success).toBe(false);
     const { acceptTerms: _, ...withoutTerms } = valid;

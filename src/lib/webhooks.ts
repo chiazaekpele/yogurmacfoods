@@ -129,6 +129,9 @@ async function orderCharge(data: Record<string, any>): Promise<DispatchResult> {
         landmark: pending.landmark,
         subtotal: pending.subtotal,
         shippingFee: pending.shippingFee,
+        vatRate: pending.vatRate,
+        vat: pending.vat,
+        fulfilment: pending.fulfilment,
         total: pending.total,
         amountPaid: fromKobo(Number(data.amount)),
         paystackRef: reference,
@@ -177,6 +180,8 @@ export async function sendOrderEmail(orderDbId: string): Promise<{ ok: boolean; 
       ...order,
       subtotal: order.subtotal.toString(),
       shippingFee: order.shippingFee.toString(),
+      vatRate: order.vatRate.toString(),
+      vat: order.vat.toString(),
       total: order.total.toString(),
       items: order.items.map((i) => ({ ...i, unitPrice: i.unitPrice.toString() })),
     });

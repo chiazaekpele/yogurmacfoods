@@ -370,3 +370,30 @@ main>.section:last-child,main>section:last-of-type{padding-bottom:88px}
 .terms-check{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:15px;cursor:pointer}
 .terms-check input{width:18px;height:18px;margin-top:3px;flex:none;accent-color:var(--brand)}
 .terms-check a{color:var(--brand)}
+.pickup-box{border-left:3px solid var(--leaf);padding:4px 0 4px 14px;display:grid;gap:4px}
+.pickup-box p{margin:0}
+.footer-lbl{color:var(--ink);font-weight:500;min-width:76px}
+
+/* ── Customer reviews above the footer (components/ReviewsStrip.tsx) ── */
+.reviews{padding:72px var(--gutter) 64px;border-top:1px solid var(--line)}
+.reviews-row{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(260px,1fr);gap:40px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;margin-top:20px}
+.review{scroll-snap-align:start;margin:0;max-width:420px}
+.review-stars{color:#E8A317;letter-spacing:2px;font-size:17px}
+.review-stars span{color:var(--line)}
+.review blockquote{margin:10px 0 12px;font-size:17px;line-height:1.55;color:var(--ink)}
+.review figcaption{font-weight:600;color:var(--muted);font-size:15px}
+@media (max-width:560px){.reviews{padding:52px var(--gutter) 48px}.reviews-row{grid-auto-columns:85%;gap:24px}}
+.star-pick{display:flex;gap:4px}
+.star-pick button{border:0;background:none;font-size:32px;line-height:1;color:var(--line);cursor:pointer;padding:2px}
+.star-pick button.on{color:#E8A317}
+.star-pick button:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+
+/* ── Owner-built pages: team grid (app/company/[slug]) ── */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:40px 28px;margin-top:20px}
+.team-member{margin:0}
+.team-photo{position:relative;aspect-ratio:4/5;border-radius:var(--radius);overflow:hidden;background:var(--brand-50);display:grid;place-items:center;color:var(--brand);font-family:var(--display);font-size:44px;font-weight:600}
+.team-member figcaption{padding-top:14px;display:grid;gap:2px}
+.team-member strong{font-family:var(--display);font-size:19px;font-weight:600}
+.team-role{color:var(--leaf-dark);font-weight:500}
+.team-member p{color:var(--muted);font-size:15px;margin-top:6px}
+@media (max-width:560px){.team-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 16px}.team-photo{font-size:32px}}

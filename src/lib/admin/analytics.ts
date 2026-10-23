@@ -40,11 +40,11 @@ export async function revenueSummary() {
   };
   const entries = await Promise.all(
     Object.entries(periods).map(async ([k, p]) => {
-      const agg = await db.order.aggregate({ where: { createdAt: bounds(p) }, _sum: { subtotal: true, total: true }, _count: true });
-      return [k, { orders: agg._count, productKobo: toKobo(agg._sum.subtotal ?? "0"), totalKobo: toKobo(agg._sum.total ?? "0") }] as const;
+      const agg = await db.order.aggregate({ where: { createdAt: bounds(p) }, _sum: { subtotal: true, total: true, vat: true }, _count: true });
+      return [k, { orders: agg._count, productKobo: toKobo(agg._sum.subtotal ?? "0"), totalKobo: toKobo(agg._sum.total ?? "0"), vatKobo: toKobo(agg._sum.vat ?? "0") }] as const;
     }),
   );
-  return Object.fromEntries(entries) as Record<keyof typeof periods, { orders: number; productKobo: number; totalKobo: number }>;
+  return Object.fromEntries(entries) as Record<keyof typeof periods, { orders: number; productKobo: number; totalKobo: number; vatKobo: number }>;
 }
 
 export async function dailySeries(range: Range) {

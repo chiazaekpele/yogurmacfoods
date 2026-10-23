@@ -61,7 +61,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[slug
             <p className="pd-desc">{product.description}</p>
           </>
         }
-        footer={<div className="fresh-note">Made fresh to order — ready in 2–3 business days</div>}
+        footer={<div className="fresh-note">Made fresh to order</div>}
       />
 
       <section className="section">

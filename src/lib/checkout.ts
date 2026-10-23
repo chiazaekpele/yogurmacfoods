@@ -1,7 +1,8 @@
 import { Prisma } from "@/generated/prisma/client";
 import { db } from "./db";
-import { fromKobo, toKobo } from "./money";
+import { fromKobo, toKobo, vatKobo } from "./money";
 import { generateOrderId } from "./order-id";
+import { getSiteSettings, pickupAvailable } from "./settings";
 import { getShippingRates } from "./shipping";
 import type { CheckoutInput } from "./validation";
 
@@ -17,7 +18,17 @@ export type PricedLine = {
   size: string;
 };
 
-export type Quote = { lines: PricedLine[]; subtotalKobo: number; shippingKobo: number; totalKobo: number; deliveryDays: number };
+export type Quote = {
+  lines: PricedLine[];
+  subtotalKobo: number;
+  shippingKobo: number;
+  vatRate: number;
+  vatKobo: number;
+  totalKobo: number;
+  fulfilment: CheckoutInput["fulfilment"];
+  // Pickup orders keep the pickup address as their address.
+  pickupAddress: string | null;
+};
 
 export class CheckoutError extends Error {
   constructor(
@@ -30,7 +41,7 @@ export class CheckoutError extends Error {
 }
 
 // Prices always come from the database, never from the client (TRD §6.1).
-export async function quote(input: Pick<CheckoutInput, "items" | "lga">): Promise<Quote> {
+export async function quote(input: Pick<CheckoutInput, "items" | "lga" | "fulfilment">): Promise<Quote> {
   // One line per variant and number of days.
   const wanted = new Map<string, { variantId: string; days: number; quantity: number }>();
   for (const i of input.items) {
@@ -69,18 +80,33 @@ export async function quote(input: Pick<CheckoutInput, "items" | "lga">): Promis
     });
   }
 
-  const rates = await getShippingRates();
-  const fee = rates[input.lga];
-  if (fee === null || fee === undefined) {
-    throw new CheckoutError(`Delivery to ${input.lga} is not available yet. Please contact us.`, 422, "lga");
+  const settings = await getSiteSettings();
+  let shippingKobo = 0;
+  if (input.fulfilment === "PICKUP") {
+    if (!pickupAvailable(settings)) throw new CheckoutError("Pickup isn’t available right now. Please choose delivery.", 422, "fulfilment");
+  } else {
+    const rates = await getShippingRates();
+    const fee = input.lga ? rates[input.lga] : null;
+    if (fee === null || fee === undefined) {
+      throw new CheckoutError(`Delivery to ${input.lga || "that area"} is not available yet. Please contact us.`, 422, "lga");
+    }
+    // The LGA fee is charged once per order, daily boxes included (22 Oct 2026).
+    shippingKobo = toKobo(fee);
   }
 
   const subtotalKobo = lines.reduce((sum, l) => sum + toKobo(l.unitPrice) * l.quantity * l.days, 0);
-  // A daily box means a delivery every day: the LGA fee is charged once per
-  // delivery day; everything else in the order travels with those deliveries.
-  const deliveryDays = Math.max(1, ...lines.map((l) => l.days));
-  const shippingKobo = toKobo(fee) * deliveryDays;
-  return { lines, subtotalKobo, shippingKobo, totalKobo: subtotalKobo + shippingKobo, deliveryDays };
+  // VAT is added on top of products and delivery.
+  const vat = vatKobo(subtotalKobo + shippingKobo, settings.vatRate);
+  return {
+    lines,
+    subtotalKobo,
+    shippingKobo,
+    vatRate: settings.vatRate,
+    vatKobo: vat,
+    totalKobo: subtotalKobo + shippingKobo + vat,
+    fulfilment: input.fulfilment,
+    pickupAddress: input.fulfilment === "PICKUP" ? settings.pickupAddress : null,
+  };
 }
 
 export async function createPendingCheckout(input: CheckoutInput, q: Quote, customerId: string) {
@@ -94,12 +120,15 @@ export async function createPendingCheckout(input: CheckoutInput, q: Quote, cust
           customerName: input.customerName,
           customerEmail: input.customerEmail,
           customerPhone: input.customerPhone,
-          lga: input.lga,
-          exactAddress: input.exactAddress,
-          landmark: input.landmark ?? null,
+          fulfilment: q.fulfilment,
+          lga: q.fulfilment === "PICKUP" ? "Pickup" : input.lga,
+          exactAddress: q.fulfilment === "PICKUP" ? (q.pickupAddress ?? "") : input.exactAddress,
+          landmark: q.fulfilment === "PICKUP" ? null : (input.landmark ?? null),
           items: q.lines as unknown as Prisma.InputJsonValue,
           subtotal: fromKobo(q.subtotalKobo),
           shippingFee: fromKobo(q.shippingKobo),
+          vatRate: q.vatRate.toFixed(2),
+          vat: fromKobo(q.vatKobo),
           total: fromKobo(q.totalKobo),
           expiresAt: new Date(Date.now() + PENDING_CHECKOUT_TTL_MS),
         },

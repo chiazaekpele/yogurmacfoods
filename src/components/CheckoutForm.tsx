@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { daysOf, lineKey, useCart } from "@/hooks/useCart";
-import { formatNaira, fromKobo, toKobo } from "@/lib/money";
+import { formatNaira, fromKobo, toKobo, vatKobo } from "@/lib/money";
 import { openPaystack } from "@/lib/paystack-inline";
 import { checkoutSchema, fieldErrors } from "@/lib/validation";
 import { Naira } from "./Naira";
@@ -17,10 +17,16 @@ export function CheckoutForm({
   lgas,
   simulated,
   initial,
+  vatRate,
+  pickup,
 }: {
   lgas: Lga[];
   simulated: boolean;
   initial?: Partial<typeof EMPTY_FORM>;
+  // VAT added on top, in percent (0 = none).
+  vatRate: number;
+  // Offered when the owner has set a pickup address.
+  pickup: { address: string; note: string | null } | null;
 }) {
   const router = useRouter();
   const { items, subtotalKobo, reprice } = useCart();
@@ -31,12 +37,14 @@ export function CheckoutForm({
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [fulfilment, setFulfilment] = useState<"DELIVERY" | "PICKUP">("DELIVERY");
+  const isPickup = fulfilment === "PICKUP";
 
+  // Same sums as the server quote: delivery charged once per order, VAT on top.
   const fee = lgas.find((l) => l.name === form.lga)?.fee;
-  // Daily boxes: the delivery fee applies to each delivery day (matches the server quote).
-  const deliveryDays = Math.max(1, ...items.map(daysOf));
-  const shippingKobo = fee ? toKobo(fee) * deliveryDays : 0;
-  const totalKobo = subtotalKobo + shippingKobo;
+  const shippingKobo = !isPickup && fee ? toKobo(fee) : 0;
+  const vat = vatKobo(subtotalKobo + shippingKobo, vatRate);
+  const totalKobo = subtotalKobo + shippingKobo + vat;
 
   if (!items.length) {
     return (
@@ -61,6 +69,7 @@ export function CheckoutForm({
 
     const payload = {
       ...form,
+      fulfilment,
       items: items.map((i) => ({ variantId: i.variantId, quantity: i.quantity, days: daysOf(i) })),
       expectedTotalKobo: totalKobo,
       acceptTerms,
@@ -71,7 +80,7 @@ export function CheckoutForm({
       setFormError("Please check the highlighted fields.");
       return;
     }
-    if (form.lga && !fee) {
+    if (!isPickup && form.lga && !fee) {
       setErrors({ lga: `Delivery to ${form.lga} is not available yet.` });
       return;
     }
@@ -174,7 +183,36 @@ export function CheckoutForm({
         </fieldset>
 
         <fieldset className="fieldset">
-          <legend>Delivery</legend>
+          <legend>{pickup ? "Delivery or pickup" : "Delivery"}</legend>
+          {pickup && (
+            <div className="opt-row" role="radiogroup" aria-label="How you get your order" style={{ marginBottom: 18 }}>
+              {(["DELIVERY", "PICKUP"] as const).map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  role="radio"
+                  className="opt"
+                  aria-checked={fulfilment === f}
+                  aria-pressed={fulfilment === f}
+                  onClick={() => {
+                    setFulfilment(f);
+                    setErrors({});
+                  }}
+                >
+                  {f === "DELIVERY" ? "Deliver to me" : "I’ll pick it up"}
+                </button>
+              ))}
+            </div>
+          )}
+          {isPickup && pickup ? (
+            <div className="pickup-box">
+              <strong>Pick up from</strong>
+              <p>{pickup.address}</p>
+              {pickup.note && <p className="field-hint">{pickup.note}</p>}
+              <p className="field-hint">We’ll message you when your order is ready to collect. No delivery fee.</p>
+            </div>
+          ) : (
+          <>
           <div className="field">
             <label htmlFor="lga">Local government area (LGA)</label>
             <select id="lga" value={form.lga} onChange={set("lga")} {...aria("lga")}>
@@ -205,6 +243,9 @@ export function CheckoutForm({
             <input id="landmark" value={form.landmark} onChange={set("landmark")} {...aria("landmark")} />
             {err("landmark")}
           </div>
+          </>
+          )}
+          {err("fulfilment")}
         </fieldset>
       </div>
 
@@ -226,9 +267,24 @@ export function CheckoutForm({
           <span>{formatNaira(fromKobo(subtotalKobo))}</span>
         </div>
         <div className="sum-row">
-          <span>Delivery{form.lga ? ` (${form.lga})` : ""}</span>
-          <span>{fee ? (deliveryDays > 1 ? `${formatNaira(fee)} × ${deliveryDays} days` : formatNaira(fee)) : "Select LGA"}</span>
+          {isPickup ? (
+            <>
+              <span>Pickup</span>
+              <span>Free</span>
+            </>
+          ) : (
+            <>
+              <span>Delivery{form.lga ? ` (${form.lga})` : ""}</span>
+              <span>{fee ? formatNaira(fee) : "Select LGA"}</span>
+            </>
+          )}
         </div>
+        {vatRate > 0 && (
+          <div className="sum-row">
+            <span>VAT ({vatRate}%)</span>
+            <span>{formatNaira(fromKobo(vat))}</span>
+          </div>
+        )}
         <div className="sum-row total">
           <span>Total</span>
           <span>

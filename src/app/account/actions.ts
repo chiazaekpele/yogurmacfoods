@@ -118,3 +118,23 @@ export async function saveDetails(_prev: FormState, form: FormData): Promise<For
   });
   return { ok: "Your details are saved. They’ll be filled in for you at checkout.", values: keep(form) };
 }
+
+const reviewSchema = z.object({
+  rating: z.coerce.number().int().min(1, "Choose a star rating").max(5),
+  body: z.string().trim().min(10, "Tell us a little more (at least 10 characters)").max(1000, "Keep it under 1,000 characters"),
+  displayName: z.string().trim().min(2, "Enter the name to show with your review").max(60),
+});
+
+// One review per delivered order; it shows on the shop once the owner approves it.
+export async function writeReview(orderId: string, _prev: FormState, form: FormData): Promise<FormState> {
+  const customer = await getCustomer();
+  if (!customer) redirect(`/account/sign-in?next=/account/review/${encodeURIComponent(orderId)}`);
+  const order = await db.order.findUnique({ where: { orderId }, select: { id: true, customerId: true, status: true, review: { select: { id: true } } } });
+  if (!order || order.customerId !== customer.id) return { error: "We couldn’t find that order on your account." };
+  if (order.status !== "DELIVERED") return { error: "You can review an order once it has been delivered." };
+  if (order.review) redirect("/account?notice=review");
+  const parsed = reviewSchema.safeParse(Object.fromEntries(form));
+  if (!parsed.success) return { fields: fieldsOf(parsed.error), values: keep(form) };
+  await db.customerReview.create({ data: { orderId: order.id, customerId: customer.id, ...parsed.data } });
+  redirect("/account?notice=review");
+}

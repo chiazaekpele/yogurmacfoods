@@ -32,7 +32,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
 
   return (
     <div className="stack">
-      <PageHead title="Analytics" lede="Product revenue excludes delivery fees; total collected includes them." />
+      <PageHead title="Analytics" lede="Product revenue excludes delivery fees and VAT; total collected includes both. VAT collected is shown separately for your returns." />
 
       <div className="grid grid-4">
         {(
@@ -48,6 +48,8 @@ export default async function AnalyticsPage({ searchParams }: PageProps<"/admin/
             <div className="stat-value">{naira(v.productKobo)}</div>
             <div className="stat-sub">
               {naira(v.totalKobo)} collected · {v.orders} order{v.orders === 1 ? "" : "s"}
+              <br />
+              {naira(v.vatKobo)} VAT
             </div>
           </div>
         ))}

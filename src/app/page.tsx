@@ -26,7 +26,7 @@ export default async function Home() {
       <section className="hero">
         <HeroCarousel slides={slides} sizes="100vw" />
         <div className="hero-caption">
-          <span className="kicker">25% of our profits go to children in need</span>
+          <span className="kicker">Every order helps children in need</span>
           <h1 className="hero-h1">Premium Greek yogurt, granola &amp; energy bars</h1>
         </div>
       </section>

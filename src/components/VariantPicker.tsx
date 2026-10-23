@@ -159,7 +159,7 @@ export function VariantPicker({
           </div>
           <p className="field-hint" style={{ marginTop: 6 }}>
             {days === 1 ? "One box, delivered once." : `One box delivered each day for ${days} days.`}
-            {selected && canBuy && ` Total ${formatNaira(fromKobo(toKobo(selected.price) * quantity * days))}, plus delivery.`}
+            {selected && canBuy && ` Total ${formatNaira(fromKobo(toKobo(selected.price) * quantity * days))}, plus one delivery fee and VAT.`}
           </p>
         </div>
       )}

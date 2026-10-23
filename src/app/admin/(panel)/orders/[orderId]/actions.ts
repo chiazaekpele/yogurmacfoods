@@ -15,10 +15,10 @@ export async function moveOrder(form: FormData) {
   const from = str(form, "from");
   const to = str(form, "to");
   const path = `/admin/orders/${encodeURIComponent(orderId)}`;
-  const order = await db.order.findUnique({ where: { orderId }, select: { id: true } });
+  const order = await db.order.findUnique({ where: { orderId }, select: { id: true, fulfilment: true } });
   if (!order || !isStatus(from) || !isStatus(to)) backWith(path, "error", "That status change is not allowed.");
   try {
-    await adminMoveOrder(order.id, admin.id, from, to, str(form, "reason").slice(0, 500));
+    await adminMoveOrder(order.id, admin.id, order.fulfilment, from, to, str(form, "reason").slice(0, 500));
   } catch (err) {
     if (err instanceof OrderActionError) backWith(path, "error", err.message);
     throw err;

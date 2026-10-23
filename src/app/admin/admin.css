@@ -166,3 +166,11 @@
 .adm .pw input{padding-right:48px}
 .adm .pw-toggle{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:40px;height:40px;display:grid;place-items:center;border:0;background:none;color:var(--muted);cursor:pointer}
 .adm .pw-toggle:hover{color:var(--brand)}
+.adm .review-stars-admin{color:#E8A317;letter-spacing:1px}
+.adm .review-stars-admin span{color:var(--line)}
+.adm .photo-pick{display:grid;gap:8px;justify-items:start}
+.adm .photo-pick img,.adm .photo-empty{width:140px;height:140px;object-fit:cover;border-radius:var(--radius-btn);border:1px solid var(--line);background:var(--soft)}
+.adm .photo-empty{display:grid;place-items:center;font-size:13px;color:var(--muted)}
+.adm .text-block-edit{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start}
+.adm .member-edit{display:grid;grid-template-columns:auto 1fr;gap:20px;padding:16px 0;border-top:1px solid var(--line)}
+@media (max-width:860px){.adm .text-block-edit,.adm .member-edit{grid-template-columns:1fr}}

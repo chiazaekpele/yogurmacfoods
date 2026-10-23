@@ -43,6 +43,9 @@ export type OrderEmailData = {
   landmark: string | null;
   subtotal: string;
   shippingFee: string;
+  vatRate: string;
+  vat: string;
+  fulfilment: "DELIVERY" | "PICKUP";
   total: string;
   items: { productName: string; flavour: string; size: string; quantity: number; days: number; unitPrice: string }[];
 };
@@ -51,7 +54,14 @@ export async function sendOrderConfirmation(o: OrderEmailData): Promise<void> {
   const lines = o.items.map(
     (i) => `${i.quantity} × ${i.productName} (${i.flavour}, ${i.size})${i.days > 1 ? `, one a day for ${i.days} days` : ""} — ${formatNaira(i.unitPrice)} each`,
   );
-  const address = `${o.exactAddress}${o.landmark ? ` (near ${o.landmark})` : ""}, ${o.lga}`;
+  const pickup = o.fulfilment === "PICKUP";
+  const address = pickup ? o.exactAddress : `${o.exactAddress}${o.landmark ? ` (near ${o.landmark})` : ""}, ${o.lga}`;
+  const where = pickup ? "Pick up from" : "Delivering to";
+  const hasVat = Number(o.vat) > 0;
+  const vatLabel = `VAT (${Number(o.vatRate)}%)`;
+  const readyLine = pickup
+    ? "Everything is made fresh to order. We will message you when your order is ready to collect."
+    : "Everything is made fresh to order. We will message you when your order is on its way.";
   const orderUrl = `${siteUrl()}${orderPath(o.orderId)}`;
   const text = [
     `Hi ${o.customerName},`,
@@ -61,12 +71,13 @@ export async function sendOrderConfirmation(o: OrderEmailData): Promise<void> {
     ...lines,
     ``,
     `Subtotal: ${formatNaira(o.subtotal)}`,
-    `Delivery: ${formatNaira(o.shippingFee)}`,
+    pickup ? `Pickup: free` : `Delivery: ${formatNaira(o.shippingFee)}`,
+    ...(hasVat ? [`${vatLabel}: ${formatNaira(o.vat)}`] : []),
     `Total paid: ${formatNaira(o.total)}`,
     ``,
-    `Delivering to: ${address}`,
+    `${where}: ${address}`,
     ``,
-    `Everything is made fresh to order. Your order will be ready in 2–3 business days, and we will message you when it is on its way.`,
+    readyLine,
     ``,
     `View your order: ${orderUrl}`,
   ].join("\n");
@@ -83,10 +94,11 @@ export async function sendOrderConfirmation(o: OrderEmailData): Promise<void> {
 <p>Your Order ID is <strong style="font-size:18px">${o.orderId}</strong>. Keep it for your records.</p>
 <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0">${rows}
 <tr><td style="padding-top:10px;border-top:1px solid #C4BAA8">Subtotal</td><td style="text-align:right;padding-top:10px;border-top:1px solid #C4BAA8">${formatNaira(o.subtotal)}</td></tr>
-<tr><td>Delivery</td><td style="text-align:right">${formatNaira(o.shippingFee)}</td></tr>
+<tr><td>${pickup ? "Pickup" : "Delivery"}</td><td style="text-align:right">${pickup ? "Free" : formatNaira(o.shippingFee)}</td></tr>
+${hasVat ? `<tr><td>${vatLabel}</td><td style="text-align:right">${formatNaira(o.vat)}</td></tr>` : ""}
 <tr><td><strong>Total paid</strong></td><td style="text-align:right"><strong>${formatNaira(o.total)}</strong></td></tr></table>
-<p><strong>Delivering to:</strong> ${escape(address)}</p>
-<p>Everything is made fresh to order. Your order will be ready in 2–3 business days, and we will message you when it is on its way.</p>
+<p><strong>${where}:</strong> ${escape(address)}</p>
+<p>${readyLine}</p>
 <p><a href="${escape(orderUrl)}" style="color:#1A1917;font-weight:bold">View your order</a></p>`,
   );
 

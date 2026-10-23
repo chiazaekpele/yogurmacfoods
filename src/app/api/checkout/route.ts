@@ -49,6 +49,7 @@ export async function POST(req: Request) {
         lines: q.lines,
         subtotal: fromKobo(q.subtotalKobo),
         shippingFee: fromKobo(q.shippingKobo),
+        vat: fromKobo(q.vatKobo),
         total: fromKobo(q.totalKobo),
       },
       { status: 409 },
@@ -61,10 +62,14 @@ export async function POST(req: Request) {
   }
 
   const pending = await createPendingCheckout(input, q, customer.id);
-  // Remember these details for next time.
+  // Remember these details for next time (a pickup order leaves the saved address alone).
   await db.customer.update({
     where: { id: customer.id },
-    data: { name: input.customerName, phone: input.customerPhone, lga: input.lga, exactAddress: input.exactAddress, landmark: input.landmark ?? null },
+    data: {
+      name: input.customerName,
+      phone: input.customerPhone,
+      ...(input.fulfilment === "DELIVERY" ? { lga: input.lga || null, exactAddress: input.exactAddress, landmark: input.landmark ?? null } : {}),
+    },
   });
 
   if (isSimulatedPayments()) {

@@ -40,10 +40,11 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/or
       <h1 className="page-h1">Your order has been received</h1>
       <div className="order-id">{order.orderId}</div>
       <p className="prose">
-        You will receive a confirmation email shortly. We will notify you when your order is on its way.
+        You will receive a confirmation email shortly. We will notify you when your order is{" "}
+        {order.fulfilment === "PICKUP" ? "ready to collect" : "on its way"}.
       </p>
       <div className="fresh-note" style={{ margin: "18px 0" }}>
-        Your order will be ready in 2–3 business days
+        Made fresh to order
       </div>
 
       <div className="summary">
@@ -63,16 +64,35 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/or
           <span>{formatNaira(order.subtotal.toString())}</span>
         </div>
         <div className="sum-row">
-          <span>Delivery ({order.lga})</span>
-          <span>{formatNaira(order.shippingFee.toString())}</span>
+          {order.fulfilment === "PICKUP" ? (
+            <>
+              <span>Pickup</span>
+              <span>Free</span>
+            </>
+          ) : (
+            <>
+              <span>Delivery ({order.lga})</span>
+              <span>{formatNaira(order.shippingFee.toString())}</span>
+            </>
+          )}
         </div>
+        {order.vat.gt(0) && (
+          <div className="sum-row">
+            <span>VAT ({order.vatRate.toNumber()}%)</span>
+            <span>{formatNaira(order.vat.toString())}</span>
+          </div>
+        )}
         <div className="sum-row total">
           <span>Total paid</span>
           <span>
             <Naira value={order.amountPaid.toString()} />
           </span>
         </div>
-        {showAddress && (
+        {order.fulfilment === "PICKUP" ? (
+          <p style={{ fontSize: 14, marginTop: 14 }}>
+            <strong>Pick up from:</strong> {order.exactAddress}
+          </p>
+        ) : showAddress && (
           <p style={{ fontSize: 14, marginTop: 14 }}>
             <strong>Delivering to:</strong> {order.exactAddress}
             {order.landmark ? ` (near ${order.landmark})` : ""}, {order.lga}

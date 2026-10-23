@@ -41,6 +41,19 @@ enum OrderStatus {
   DELIVERED
 }
 
+// How an order reaches the customer (22 Oct 2026). Pickup orders pay no
+// delivery fee; their lga is "Pickup" and exactAddress the pickup address.
+enum Fulfilment {
+  DELIVERY
+  PICKUP
+}
+
+enum CustomerReviewStatus {
+  PENDING
+  APPROVED
+  HIDDEN
+}
+
 enum SubscriptionStatus {
   ACTIVE
   CANCELLED
@@ -128,8 +141,8 @@ model LGAShippingRate {
 // Holds a validated cart between payment initialisation and the Paystack
 // webhook. The Order is only created from this once payment is confirmed.
 model PendingCheckout {
-  id            String    @id @default(cuid())
-  orderId       String    @unique
+  id            String     @id @default(cuid())
+  orderId       String     @unique
   customerName  String
   customerEmail String
   customerPhone String
@@ -137,14 +150,18 @@ model PendingCheckout {
   exactAddress  String
   landmark      String?
   items         Json
-  subtotal      Decimal   @db.Decimal(12, 2)
-  shippingFee   Decimal   @db.Decimal(12, 2)
-  total         Decimal   @db.Decimal(12, 2)
+  subtotal      Decimal    @db.Decimal(12, 2)
+  shippingFee   Decimal    @db.Decimal(12, 2)
+  total         Decimal    @db.Decimal(12, 2)
+  // VAT added on top at checkout (22 Oct 2026): rate in percent, amount in naira.
+  vatRate       Decimal    @default(0) @db.Decimal(5, 2)
+  vat           Decimal    @default(0) @db.Decimal(12, 2)
+  fulfilment    Fulfilment @default(DELIVERY)
   accessCode    String?
   customerId    String?
   consumedAt    DateTime?
   expiresAt     DateTime
-  createdAt     DateTime  @default(now())
+  createdAt     DateTime   @default(now())
 
   @@index([expiresAt])
 }
@@ -161,6 +178,10 @@ model Order {
   subtotal      Decimal         @db.Decimal(12, 2)
   shippingFee   Decimal         @db.Decimal(12, 2)
   total         Decimal         @db.Decimal(12, 2)
+  // VAT added on top at checkout (22 Oct 2026): rate in percent, amount in naira.
+  vatRate       Decimal         @default(0) @db.Decimal(5, 2)
+  vat           Decimal         @default(0) @db.Decimal(12, 2)
+  fulfilment    Fulfilment      @default(DELIVERY)
   amountPaid    Decimal         @db.Decimal(12, 2)
   status        OrderStatus     @default(CONFIRMED)
   paystackRef   String          @unique
@@ -172,6 +193,7 @@ model Order {
   customer      Customer?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
   claim         OrderClaim?
   setbacks      SetbackReport[]
+  review        CustomerReview?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
@@ -326,9 +348,9 @@ model Donation {
 // Shop customer account (13 Oct 2026). Passwords and sessions live in Neon Auth;
 // this row holds the saved checkout details.
 model Customer {
-  id           String     @id @default(cuid())
-  authUserId   String     @unique
-  email        String     @unique
+  id           String           @id @default(cuid())
+  authUserId   String           @unique
+  email        String           @unique
   name         String
   phone        String?
   lga          String?
@@ -336,8 +358,9 @@ model Customer {
   landmark     String?
   orders       Order[]
   donations    Donation[]
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  reviews      CustomerReview[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 }
 
 // Homepage hero carousel, managed from /admin (14 Oct 2026).
@@ -554,4 +577,59 @@ model OrderClaim {
   markedReadyAt DateTime?
 
   @@index([staffId])
+}
+
+// Shop-wide settings the owner edits in the admin (one row, id "site").
+model SiteSettings {
+  id            String   @id @default("site")
+  // VAT added on top of every order, in percent (0 = no VAT).
+  vatRate       Decimal  @default(7.5) @db.Decimal(5, 2)
+  pickupEnabled Boolean  @default(false)
+  pickupAddress String?
+  // Opening hours or directions shown with the pickup address.
+  pickupNote    String?
+  // Contact us (footer): any left empty are not shown.
+  contactEmail  String?
+  phone         String?
+  whatsapp      String?
+  instagram     String?
+  facebook      String?
+  tiktok        String?
+  x             String?
+  youtube       String?
+  linkedin      String?
+  updatedAt     DateTime @updatedAt
+}
+
+// Customer reviews: written from the account page once an order is delivered,
+// shown above the footer after the owner approves them.
+model CustomerReview {
+  id          String               @id @default(cuid())
+  orderId     String               @unique
+  order       Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customerId  String
+  customer    Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  rating      Int
+  body        String
+  displayName String
+  status      CustomerReviewStatus @default(PENDING)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([status, createdAt])
+}
+
+// Pages the owner builds herself (e.g. Our Team), at /company/<slug>.
+// blocks: [{ type: "text", heading, body, imageUrl? } |
+//          { type: "team", heading, members: [{ name, role, bio, photoUrl? }] }]
+model InfoPage {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  intro       String?
+  blocks      Json     @default("[]")
+  isPublished Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

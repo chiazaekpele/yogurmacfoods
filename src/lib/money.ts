@@ -30,3 +30,7 @@ export function formatNaira(naira: DecimalLike): string {
     })
   );
 }
+
+// VAT in kobo on an amount in kobo, at a percentage rate, rounded to the
+// nearest kobo. Checkout (server) and the checkout form (browser) both use it.
+export const vatKobo = (amountKobo: number, ratePercent: number) => Math.round((amountKobo * ratePercent) / 100);

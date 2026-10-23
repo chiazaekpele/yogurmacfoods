@@ -3,6 +3,7 @@ import { CheckoutForm } from "@/components/CheckoutForm";
 import { requireCustomer } from "@/lib/customer";
 import { LAGOS_LGAS } from "@/lib/lgas";
 import { isSimulatedPayments } from "@/lib/paystack";
+import { getSiteSettings, pickupAvailable } from "@/lib/settings";
 import { getShippingRates } from "@/lib/shipping";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,7 @@ export const metadata: Metadata = { title: "Checkout", robots: { index: false } 
 export default async function CheckoutPage() {
   // Paying requires an account (13 Oct 2026).
   const customer = await requireCustomer("/checkout");
-  const rates = await getShippingRates();
+  const [rates, settings] = await Promise.all([getShippingRates(), getSiteSettings()]);
   const lgas = LAGOS_LGAS.map((name) => ({ name, fee: rates[name] ?? null }));
   return (
     <>
@@ -22,6 +23,8 @@ export default async function CheckoutPage() {
       <CheckoutForm
         lgas={lgas}
         simulated={isSimulatedPayments()}
+        vatRate={settings.vatRate}
+        pickup={pickupAvailable(settings) ? { address: settings.pickupAddress!, note: settings.pickupNote } : null}
         initial={{
           customerName: customer.name,
           customerEmail: customer.email,

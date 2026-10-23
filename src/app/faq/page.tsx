@@ -8,7 +8,7 @@ const FAQS: { q: string; a: string[] }[] = [
     q: "Can I get same-day delivery?",
     a: [
       "Because all our products are made with maximum nutrition and freshness in mind, we do not use preservatives, especially in our yogurts. This helps preserve their natural probiotic benefits and wholesome quality. As a result, we produce in fresh batches as needed rather than keeping large quantities in storage.",
-      "For this reason, we typically ask that you allow 2–3 working days for delivery. However, if we have a freshly made batch available, our delivery team will let you know, and your order may be delivered the same day.",
+      "For this reason, we ask that you allow time for your order to be made fresh before delivery. However, if we have a freshly made batch available, our delivery team will let you know, and your order may be delivered the same day.",
       "Your health and the freshness of every product remain our top priority.",
     ],
   },

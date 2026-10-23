@@ -12,9 +12,10 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "My account", robots: { index: false } };
 
 const STATUS = { CONFIRMED: "Confirmed", IN_PRODUCTION: "Being made", READY: "Ready", OUT_FOR_DELIVERY: "Out for delivery", DELIVERED: "Delivered" } as const;
+const PICKUP_STATUS: Partial<Record<keyof typeof STATUS, string>> = { READY: "Ready to collect", DELIVERED: "Collected" };
 const date = new Intl.DateTimeFormat("en-NG", { timeZone: "Africa/Lagos", day: "numeric", month: "short", year: "numeric" });
 
-export default async function AccountPage() {
+export default async function AccountPage({ searchParams }: PageProps<"/account">) {
   const c = await requireCustomer("/account");
   // Payments from the last two days still waiting on Paystack's webhook.
   const waiting = await db.pendingCheckout.findMany({
@@ -28,8 +29,9 @@ export default async function AccountPage() {
     where: { customerId: c.id },
     orderBy: { createdAt: "desc" },
     take: 50,
-    include: { items: { select: { quantity: true, productName: true, days: true } } },
+    include: { items: { select: { quantity: true, productName: true, days: true } }, review: { select: { status: true } } },
   });
+  const { notice } = await searchParams;
 
   return (
     <>
@@ -43,6 +45,11 @@ export default async function AccountPage() {
       </div>
 
       <section className="section">
+        {notice === "review" && (
+          <div className="form-ok" role="status" style={{ marginBottom: 24 }}>
+            Thank you for your review! It will appear on the shop once we’ve read it.
+          </div>
+        )}
         <div className="account-grid">
           <div>
             <h2 className="section-h2">Your orders</h2>
@@ -67,7 +74,15 @@ export default async function AccountPage() {
                     </div>
                     <div className="history-end">
                       <strong>{formatNaira(o.total.toString())}</strong>
-                      <span className="status">{STATUS[o.status]}</span>
+                      <span className="status">{o.fulfilment === "PICKUP" ? (PICKUP_STATUS[o.status] ?? STATUS[o.status]) : STATUS[o.status]}</span>
+                      {o.status === "DELIVERED" &&
+                        (o.review ? (
+                          <span className="small muted">{o.review.status === "APPROVED" ? "Review published" : "Review received"}</span>
+                        ) : (
+                          <Link className="link small" href={`/account/review/${o.orderId}`}>
+                            Write a review
+                          </Link>
+                        ))}
                     </div>
                   </li>
                 ))}

@@ -3,6 +3,8 @@ import { Fredoka } from "next/font/google";
 import { CookieNotice } from "@/components/CookieNotice";
 import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/Nav";
+import { ReviewsStrip } from "@/components/ReviewsStrip";
+import { getChromeData } from "@/lib/chrome-data";
 import "./globals.css";
 import { siteUrl } from "@/lib/site";
 
@@ -19,7 +21,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: "#FFFFFF" };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const { contact, pages, reviews } = await getChromeData();
   return (
     <html lang="en-NG" className={fredoka.variable}>
       <body id="top">
@@ -28,7 +31,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         <Nav />
         <main id="main">{children}</main>
-        <Footer />
+        <ReviewsStrip reviews={reviews} />
+        <Footer contact={contact} pages={pages} />
         <CookieNotice />
       </body>
     </html>

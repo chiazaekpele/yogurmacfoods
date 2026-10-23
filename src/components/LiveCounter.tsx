@@ -50,7 +50,7 @@ export function LiveCounter({ initial }: { initial: BoxTotals }) {
         <div className="counter-lbl">{totals.boxes === 1 ? "wellness box sold" : "wellness boxes sold"}</div>
       </div>
       <div className="counter-live">
-        <span className="counter-dot" aria-hidden /> Live · 25% of our profits support the Ythirst Project
+        <span className="counter-dot" aria-hidden /> Live · every box supports the Ythirst Project
       </div>
     </div>
   );

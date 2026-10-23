@@ -23,8 +23,7 @@ export default async function ImpactPage() {
         <span className="kicker kicker-leaf">Business Impact</span>
         <h1 className="page-h1">Nourishing Lives. Preserving Nature. Sharing Love.</h1>
         <p className="page-lede">
-          Good food for you, and a share of every naira we earn for children who need it most. 25% of our profits fund the Ythirst
-          Project.
+          Good food for you, and a share of every naira we earn for children who need it most, through the Ythirst Project.
         </p>
       </div>
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatNaira, fromKobo, toKobo } from "@/lib/money";
+import { formatNaira, fromKobo, toKobo, vatKobo } from "@/lib/money";
 
 describe("toKobo / fromKobo", () => {
   it("converts decimal strings exactly", () => {
@@ -22,5 +22,13 @@ describe("formatNaira", () => {
   it("formats whole and fractional amounts", () => {
     expect(formatNaira("2500.00")).toBe("₦2,500");
     expect(formatNaira("1999.50")).toBe("₦1,999.50");
+  });
+});
+
+describe("vatKobo", () => {
+  it("adds VAT at the rate, rounded to the nearest kobo", () => {
+    expect(vatKobo(1_320_000, 7.5)).toBe(99_000); // ₦13,200 → ₦990
+    expect(vatKobo(333, 7.5)).toBe(25); // 24.975 kobo rounds up
+    expect(vatKobo(1_000_000, 0)).toBe(0);
   });
 });
