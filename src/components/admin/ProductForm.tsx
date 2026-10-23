@@ -157,7 +157,7 @@ export function ProductForm({ productId, initial, categories }: { productId: str
       <div className="card">
         <h2 className="h2">Photos</h2>
         <p className="hint" style={{ marginBottom: 10 }}>
-          Up to 5 images (JPG, PNG or WEBP, 5 MB each). Drag to reorder; the first photo is the main one.
+          Up to 5 images (JPG, PNG or WEBP, 4 MB each). Drag to reorder; the first photo is the main one.
         </p>
         <div className="thumbs">
           {v.images.map((url, i) => (

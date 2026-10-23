@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { isSameOrigin } from "@/lib/origin";
 
 const TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 4 * 1024 * 1024; // Vercel caps request bodies at 4.4 MB
 
 // The file's first bytes must match its claimed type, so nothing else is served as an image.
 function looksLike(type: string, b: Uint8Array): boolean {
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   const file = form?.get("file");
   if (!(file instanceof File)) return NextResponse.json({ error: "Choose an image to upload." }, { status: 400 });
   if (!TYPES.has(file.type)) return NextResponse.json({ error: "Only JPG, PNG or WEBP images." }, { status: 400 });
-  if (file.size > MAX_BYTES) return NextResponse.json({ error: "Images must be 5 MB or smaller." }, { status: 400 });
+  if (file.size > MAX_BYTES) return NextResponse.json({ error: "Images must be 4 MB or smaller." }, { status: 400 });
 
   const bytes = new Uint8Array(await file.arrayBuffer());
   if (!looksLike(file.type, bytes)) return NextResponse.json({ error: "That file isn’t a valid image." }, { status: 400 });

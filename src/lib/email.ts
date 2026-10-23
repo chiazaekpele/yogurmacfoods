@@ -8,9 +8,12 @@ const FROM = process.env.EMAIL_FROM || "Yogurmac Foods <orders@yogurmacfoods.com
 
 type Mail = { to: string; subject: string; html: string; text: string; idempotencyKey: string };
 
-// Sends through Resend when configured; otherwise prints to the terminal.
+// Sends through Resend when configured. Locally it prints to the terminal; on
+// the live site without Resend it fails, so the order is not marked as emailed
+// and the admin dashboard lists it under "Needs attention".
 async function send(mail: Mail): Promise<void> {
   if (!resend) {
+    if (process.env.VERCEL_ENV === "production") throw new Error("Email isn’t set up yet (no RESEND_API_KEY), so nothing was sent.");
     console.info(`\n[email:local] To: ${mail.to}\nSubject: ${mail.subject}\n\n${mail.text}\n`);
     return;
   }

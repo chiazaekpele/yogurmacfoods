@@ -10,9 +10,9 @@ export default function ErrorPage({ error, retry }: { error: Error & { digest?: 
   }, [error]);
   return (
     <div className="confirm">
-      <h1 className="page-h1">We’ll be right back</h1>
+      <h1 className="page-h1">Something went wrong</h1>
       <p className="prose" style={{ margin: "12px 0 20px" }}>
-        The shop is having a short break for maintenance. Please try again in a few minutes. Your cart is saved.
+        This page didn’t load properly. Please try again; if it keeps happening, wait a minute and refresh. Your cart is saved.
       </p>
       <button className="btn" onClick={() => retry()}>
         Try again

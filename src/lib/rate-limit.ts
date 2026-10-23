@@ -24,6 +24,10 @@ export async function rateLimit(name: string, ip: string, limit: Limit): Promise
 
   const key = `${name}:${ip}`;
   const now = Date.now();
+  // Forget addresses not seen for an hour, so the map can't grow without limit.
+  if (memory.size > 5000) {
+    for (const [k, times] of memory) if (!times.length || now - times[times.length - 1] > 3_600_000) memory.delete(k);
+  }
   const recent = (memory.get(key) ?? []).filter((t) => now - t < limit.windowSeconds * 1000);
   if (recent.length >= limit.requests) {
     memory.set(key, recent);

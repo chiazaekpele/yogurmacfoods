@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { audit } from "@/lib/admin/audit";
 import { auth } from "@/lib/auth/server";
+import { authCall, UNREACHABLE } from "@/lib/auth/safe";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -31,8 +32,9 @@ export async function adminSignIn(_prev: AuthState, form: FormData): Promise<Aut
   const parsed = z.object({ email, password: z.string().min(1, "Enter your password").max(128) }).safeParse(Object.fromEntries(form));
   if (!parsed.success) return { fields: fieldsOf(parsed.error), values: keep(form, "email") };
 
-  const { data, error } = await auth.signIn.email(parsed.data);
+  const { data, error } = await authCall(() => auth.signIn.email(parsed.data));
   const authUserId = data?.user?.id;
+  if (error?.unreachable) return { error: UNREACHABLE, values: keep(form, "email") };
   if (error || !authUserId) return { error: GENERIC, values: keep(form, "email") };
 
   const user = await db.user.findUnique({ where: { authUserId } });
@@ -75,10 +77,11 @@ export async function adminSignUp(_prev: AuthState, form: FormData): Promise<Aut
   // A customer of the shop may already have a login with this email: their
   // current password proves it is theirs, and the same login becomes an admin.
   let authUserId: string | undefined;
-  const created = await auth.signUp.email({ name, email: addr, password });
+  const created = await authCall(() => auth.signUp.email({ name, email: addr, password }));
+  if (created.error?.unreachable) return { error: UNREACHABLE, values };
   if (created.data?.user?.id) authUserId = created.data.user.id;
   else if (/exist/i.test(created.error?.message ?? "")) {
-    const signedIn = await auth.signIn.email({ email: addr, password });
+    const signedIn = await authCall(() => auth.signIn.email({ email: addr, password }));
     authUserId = signedIn.data?.user?.id;
     if (!authUserId) return { error: "This email already has a login. Enter its current password, or use another email.", values };
   } else {
@@ -99,6 +102,6 @@ export async function adminSignUp(_prev: AuthState, form: FormData): Promise<Aut
 
   // Sign-up normally signs the user in; if Neon Auth requires email
   // verification it does not, so send them to the sign-in page instead.
-  const { data: session } = await auth.getSession();
+  const { data: session } = await authCall(() => auth.getSession());
   redirect(session?.user ? "/admin/dashboard" : "/admin?reason=created");
 }

@@ -21,7 +21,12 @@ const csp = [
 const nextConfig: NextConfig = {
   // The Ythirst page and the old giving page became Business Impact (13 Oct 2026).
   async redirects() {
+    const canonical = "https://shopyogurmacfoods.com";
+    const otherHosts = ["www.shopyogurmacfoods.com", "yogurmacfoods.com", "www.yogurmacfoods.com"];
     return [
+      // One address for the shop: logins are kept per address, and Neon Auth
+      // only accepts sign-ins from addresses on its trusted list.
+      ...otherHosts.map((host) => ({ source: "/:path*", has: [{ type: "host" as const, value: host }], destination: `${canonical}/:path*`, permanent: true })),
       { source: "/ythirst", destination: "/impact", permanent: true },
       { source: "/partner", destination: "/impact#boxes", permanent: true },
       { source: "/partner/thank-you", destination: "/impact", permanent: true },

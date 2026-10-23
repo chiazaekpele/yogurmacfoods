@@ -10,7 +10,7 @@ export async function GET(_req: Request, ctx: RouteContext<"/media/[id]">) {
   return new Response(new Uint8Array(img.bytes), {
     headers: {
       "Content-Type": img.mimeType,
-      "Cache-Control": "public, max-age=31536000, immutable",
+      "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
       "X-Content-Type-Options": "nosniff",
     },
   });

@@ -29,7 +29,7 @@ export function AddHeroSlide() {
     <form action={addSlide} className="card">
       <h2 className="h2">Add an image</h2>
       <p className="hint" style={{ marginBottom: 12 }}>
-        Wide photos work best (at least 1600 pixels across). JPG, PNG or WEBP, up to 5 MB.
+        Wide photos work best (at least 1600 pixels across). JPG, PNG or WEBP, up to 4 MB.
       </p>
       {error && (
         <div className="form-err" role="alert" style={{ marginBottom: 12 }}>

@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/lib/auth/server";
+import { authCall, UNREACHABLE } from "@/lib/auth/safe";
 import { getCustomer, safeNext } from "@/lib/customer";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
@@ -38,7 +39,8 @@ export async function signUp(_prev: FormState, form: FormData): Promise<FormStat
   if (!parsed.success) return { fields: fieldsOf(parsed.error), values: keep(form) };
   const { name, email: addr, password: pw } = parsed.data;
 
-  const { data, error } = await auth.signUp.email({ name, email: addr, password: pw });
+  const { data, error } = await authCall(() => auth.signUp.email({ name, email: addr, password: pw }));
+  if (error?.unreachable) return { error: UNREACHABLE, values: keep(form) };
   if (error || !data?.user?.id) {
     const exists = /exist/i.test(error?.message ?? "");
     if (!exists) console.error("Customer sign-up failed:", error);
@@ -48,7 +50,7 @@ export async function signUp(_prev: FormState, form: FormData): Promise<FormStat
   }
   await db.customer.upsert({ where: { authUserId: data.user.id }, update: { name }, create: { authUserId: data.user.id, email: addr, name } });
   const next = safeNext(form.get("next"));
-  const { data: session } = await auth.getSession();
+  const { data: session } = await authCall(() => auth.getSession());
   // If Neon Auth is set to require email verification, there is no session yet.
   redirect(session?.user ? next : `/account/sign-in?next=${encodeURIComponent(next)}&notice=verify`);
 }
@@ -62,7 +64,8 @@ export async function signIn(_prev: FormState, form: FormData): Promise<FormStat
   }
   const parsed = signInSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { fields: fieldsOf(parsed.error), values: keep(form) };
-  const { data, error } = await auth.signIn.email(parsed.data);
+  const { data, error } = await authCall(() => auth.signIn.email(parsed.data));
+  if (error?.unreachable) return { error: UNREACHABLE, values: keep(form) };
   if (error || !data?.user?.id) return { error: GENERIC, values: keep(form) };
   await getCustomer();
   redirect(safeNext(form.get("next")));
@@ -81,7 +84,8 @@ export async function requestReset(_prev: FormState, form: FormData): Promise<Fo
   const parsed = email.safeParse(form.get("email"));
   if (!parsed.success) return { fields: { email: parsed.error.issues[0].message }, values: keep(form) };
   const site = siteUrl();
-  const { error } = await auth.requestPasswordReset({ email: parsed.data, redirectTo: `${site}/account/reset` });
+  const { error } = await authCall(() => auth.requestPasswordReset({ email: parsed.data, redirectTo: `${site}/account/reset` }));
+  if (error?.unreachable) return { error: UNREACHABLE, values: keep(form) };
   if (error) console.error("Password reset request failed:", error);
   return { ok: "If there’s an account for that email, we’ve sent a link to reset your password. Check your inbox." };
 }
@@ -93,7 +97,8 @@ const resetSchema = z
 export async function resetPassword(_prev: FormState, form: FormData): Promise<FormState> {
   const parsed = resetSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { fields: fieldsOf(parsed.error), values: keep(form) };
-  const { error } = await auth.resetPassword({ token: parsed.data.token, newPassword: parsed.data.password });
+  const { error } = await authCall(() => auth.resetPassword({ token: parsed.data.token, newPassword: parsed.data.password }));
+  if (error?.unreachable) return { error: UNREACHABLE };
   if (error) return { error: "This reset link has expired or has already been used. Request a new one." };
   redirect("/account/sign-in?notice=reset");
 }

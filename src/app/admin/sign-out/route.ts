@@ -9,3 +9,8 @@ export async function POST(req: Request) {
   await auth.signOut().catch((err: unknown) => console.error("signOut failed:", err));
   return NextResponse.redirect(new URL("/admin?reason=signedout", req.url), 303);
 }
+
+// Visiting the address (an old link or bookmark) just goes to the login page.
+export async function GET(req: Request) {
+  return NextResponse.redirect(new URL("/admin", req.url), 303);
+}
