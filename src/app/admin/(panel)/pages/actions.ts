@@ -35,7 +35,7 @@ export async function savePage(pageId: string | null, _prev: PageSaveState, form
     const where = issue?.path[0] === "blocks" && typeof issue.path[1] === "number" ? ` (section ${issue.path[1] + 1})` : "";
     return { error: `${issue?.message ?? "Please check the page."}${where}` };
   }
-  const { title, intro, isPublished, blocks } = parsed.data;
+  const { kind, title, intro, isPublished, blocks } = parsed.data;
   const data = { title, intro: intro || null, isPublished, blocks: blocks as unknown as Prisma.InputJsonValue };
 
   let slug: string;
@@ -51,8 +51,8 @@ export async function savePage(pageId: string | null, _prev: PageSaveState, form
     slug = await uniqueSlug(async (s) => !!(await db.infoPage.findUnique({ where: { slug: s } })), title, "page");
     await db.$transaction(async (tx) => {
       const last = await tx.infoPage.aggregate({ _max: { sortOrder: true } });
-      const page = await tx.infoPage.create({ data: { ...data, slug, sortOrder: (last._max.sortOrder ?? 0) + 1 } });
-      await audit(tx, { actorId: admin.id, action: "PAGE_CREATED", entityType: "InfoPage", entityId: page.id, newValue: { title, slug } });
+      const page = await tx.infoPage.create({ data: { ...data, kind, slug, sortOrder: (last._max.sortOrder ?? 0) + 1 } });
+      await audit(tx, { actorId: admin.id, action: "PAGE_CREATED", entityType: "InfoPage", entityId: page.id, newValue: { title, slug, kind } });
     });
   }
   refreshShop(slug);

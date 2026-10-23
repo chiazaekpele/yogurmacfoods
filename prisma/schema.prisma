@@ -619,13 +619,23 @@ model CustomerReview {
   @@index([status, createdAt])
 }
 
-// Pages the owner builds herself (e.g. Our Team), at /company/<slug>.
+// What a page is mainly for; it sets the sections a new page starts with.
+// Every page can still use any kind of section.
+enum PageKind {
+  STANDARD
+  TEAM
+  GALLERY
+}
+
+// Pages the owner builds herself, at /company/<slug>.
 // blocks: [{ type: "text", heading, body, imageUrl? } |
-//          { type: "team", heading, members: [{ name, role, bio, photoUrl? }] }]
+//          { type: "team", heading, members: [{ name, role, bio, photoUrl? }] } |
+//          { type: "gallery", heading, images: [{ url, caption }] }]
 model InfoPage {
   id          String   @id @default(cuid())
   title       String
   slug        String   @unique
+  kind        PageKind @default(STANDARD)
   intro       String?
   blocks      Json     @default("[]")
   isPublished Boolean  @default(false)

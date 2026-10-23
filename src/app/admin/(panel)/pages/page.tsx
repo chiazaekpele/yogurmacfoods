@@ -5,6 +5,7 @@ import { PageHead } from "@/components/admin/PageHead";
 import { SubmitButton } from "@/components/admin/SubmitButton";
 import { requireAdmin } from "@/lib/admin/session";
 import { db } from "@/lib/db";
+import { PAGE_KIND_INFO } from "@/lib/info-pages";
 import { formatDate } from "@/lib/lagos-time";
 import { deletePage, movePage } from "./actions";
 
@@ -15,7 +16,7 @@ export default async function PagesList({ searchParams }: PageProps<"/admin/page
   const pages = await db.infoPage.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
   return (
     <div className="stack">
-      <PageHead title="Pages" lede="Your own pages, such as Our Team or Our Partners. Published pages are linked under Company at the bottom of every page.">
+      <PageHead title="Pages" lede="Your own pages: standard pages, team pages and photo galleries. Published pages are linked under Company at the bottom of every page.">
         <Link className="btn" href="/admin/pages/new">
           New page
         </Link>
@@ -26,6 +27,7 @@ export default async function PagesList({ searchParams }: PageProps<"/admin/page
           <thead>
             <tr>
               <th>Page</th>
+              <th>Type</th>
               <th>Status</th>
               <th>Updated</th>
               <th>Order</th>
@@ -38,6 +40,7 @@ export default async function PagesList({ searchParams }: PageProps<"/admin/page
                 <td>
                   <strong>{p.title}</strong>
                 </td>
+                <td className="small">{PAGE_KIND_INFO[p.kind].label}</td>
                 <td>{p.isPublished ? <span className="badge b-on">On the shop</span> : <span className="badge b-off">Draft</span>}</td>
                 <td className="small">{formatDate(p.updatedAt)}</td>
                 <td>
@@ -75,7 +78,7 @@ export default async function PagesList({ searchParams }: PageProps<"/admin/page
             ))}
             {pages.length === 0 && (
               <tr>
-                <td colSpan={5} className="empty">
+                <td colSpan={6} className="empty">
                   No pages yet. Create one for your team, your partners or anything else customers should know.
                 </td>
               </tr>

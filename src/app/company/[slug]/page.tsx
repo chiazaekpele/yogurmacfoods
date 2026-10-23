@@ -64,6 +64,23 @@ export default async function CompanyPage({ params }: PageProps<"/company/[slug]
             </section>
           );
         }
+        if (b.type === "gallery") {
+          return (
+            <section className="section" key={i}>
+              {b.heading && <h2 className="section-h2">{b.heading}</h2>}
+              <div className="gallery-grid">
+                {b.images.map((g, k) => (
+                  <figure key={k}>
+                    <a href={g.url} target="_blank" rel="noopener noreferrer" className="gallery-photo" aria-label={g.caption ? `Open photo: ${g.caption}` : `Open photo ${k + 1}`}>
+                      <Image src={g.url} alt={g.caption || `${page.title}, photo ${k + 1}`} fill sizes="(max-width: 560px) 50vw, (max-width: 1100px) 33vw, 300px" style={{ objectFit: "cover" }} />
+                    </a>
+                    {g.caption && <figcaption>{g.caption}</figcaption>}
+                  </figure>
+                ))}
+              </div>
+            </section>
+          );
+        }
         return (
           <section className="section" key={i}>
             {b.heading && <h2 className="section-h2">{b.heading}</h2>}

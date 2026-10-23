@@ -4,7 +4,7 @@ import { PageEditor } from "@/components/admin/PageEditor";
 import { PageHead } from "@/components/admin/PageHead";
 import { requireAdmin } from "@/lib/admin/session";
 import { db } from "@/lib/db";
-import { readBlocks } from "@/lib/info-pages";
+import { PAGE_KIND_INFO, readBlocks } from "@/lib/info-pages";
 
 export const metadata: Metadata = { title: "Edit page" };
 
@@ -14,8 +14,8 @@ export default async function EditInfoPage({ params }: PageProps<"/admin/pages/[
   if (!page) notFound();
   return (
     <div>
-      <PageHead eyebrow="Pages" title={`Edit ${page.title}`} />
-      <PageEditor pageId={page.id} initial={{ title: page.title, intro: page.intro ?? "", isPublished: page.isPublished, blocks: readBlocks(page.blocks) }} />
+      <PageHead eyebrow={PAGE_KIND_INFO[page.kind].label} title={`Edit ${page.title}`} />
+      <PageEditor pageId={page.id} initial={{ kind: page.kind, title: page.title, intro: page.intro ?? "", isPublished: page.isPublished, blocks: readBlocks(page.blocks) }} />
     </div>
   );
 }

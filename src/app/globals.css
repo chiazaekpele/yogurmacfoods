@@ -397,3 +397,11 @@ main>.section:last-child,main>section:last-of-type{padding-bottom:88px}
 .team-role{color:var(--leaf-dark);font-weight:500}
 .team-member p{color:var(--muted);font-size:15px;margin-top:6px}
 @media (max-width:560px){.team-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 16px}.team-photo{font-size:32px}}
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:28px 20px;margin-top:20px}
+.gallery-grid figure{margin:0}
+.gallery-photo{position:relative;display:block;aspect-ratio:4/3;border-radius:var(--radius);overflow:hidden;background:var(--soft)}
+.gallery-photo img{transition:transform .5s ease}
+.gallery-photo:hover img{transform:scale(1.03)}
+.gallery-grid figcaption{padding-top:10px;color:var(--muted);font-size:15px}
+@media (prefers-reduced-motion:reduce){.gallery-photo:hover img{transform:none}}
+@media (max-width:560px){.gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 12px}}
